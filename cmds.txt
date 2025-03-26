@@ -1,0 +1,1 @@
+python -u tune.py --algo ppo --env_id ALE/Asteroids-v5 --n_envs 2 --kl --learn_ts 1500000 --seed 1234 --cnn --prune_after 500_000 2>&1 | tee trials.log
