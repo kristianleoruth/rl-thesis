@@ -7,7 +7,8 @@ import gc
 
 
 class TrialEvalCallback(BaseCallback):
-    def __init__(self, trial, eval_env, prune_after=500_000, eval_freq=15000, n_eval_episodes=25, verbose=0):
+    def __init__(self, trial, eval_env, prune_after=500_000, eval_freq=15000, 
+                 n_eval_episodes=25, verbose=0, n_envs=1):
         super().__init__(verbose)
         self.trial = trial
         self.eval_env = eval_env
@@ -15,9 +16,10 @@ class TrialEvalCallback(BaseCallback):
         self.n_eval_episodes = n_eval_episodes
         self.step = 0
         self.prune_after = prune_after
+        self.n_envs = n_envs
 
     def _on_step(self):
-        self.step += 1
+        self.step += self.n_envs
         if self.step % self.eval_freq != 0 or self.prune_after > self.step:
             return True
 
@@ -39,11 +41,12 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             cnn=True, passes --cnn flag
             for ppo, can pass kl=True to tune kl target
     """
-    cmd = f"--algo {algo} --fc1 1024 --fc2 512"
+    cmd = f"--algo {algo} --fc1 512 --fc2 512"
     cnn = "cnn" in kwargs.keys() and kwargs["cnn"]
-    lr = trial.suggest_float("lr", 1e-5 if cnn else 1e-4, 3e-4 if cnn else 3e-3, step=1e-5)
-    gae_lambda = trial.suggest_float("gae_lambda", 0.9, 0.99, step=0.01)
-    gamma = trial.suggest_float("gamma", 0.9, 0.99, step=0.01)
+    lr = trial.suggest_float("lr", 5e-5 if cnn else 5e-4, 3e-4 if cnn else 3e-3,
+                             step=5e-5 if cnn else 5e-4)
+    gae_lambda = trial.suggest_float("gae_lambda", 0.93, 0.99, step=0.01)
+    gamma = trial.suggest_float("gamma", 0.95, 0.99, step=0.01)
     cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma}"
 
     if cnn:
@@ -51,9 +54,10 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
     match algo:
         case "ppo":
             vf_coef = trial.suggest_float("vf_coef", 0.2, 0.7, step=0.1)
-            ent_coef = trial.suggest_float("ent_coef", 0.005, 0.02, step=0.001)
-            n_steps = trial.suggest_categorical("n_steps", [2048,4096,8192])
-            batch_size = trial.suggest_categorical("batch_size", [1024,2048,4096,8192])
+            ent_coef = trial.suggest_float("ent_coef", 0.005, 0.02, step=0.005)
+            n_steps = trial.suggest_categorical("n_steps", [1024, 2048, 4096])
+            batch_size = trial.suggest_categorical("batch_size",
+                                                   [512, 1024, 2048, 4096])
             if batch_size > n_steps * n_envs:
                 raise optuna.exceptions.TrialPruned()
             n_epochs = trial.suggest_int("n_epochs", 5, 25, step=5)
@@ -63,13 +67,13 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
                 kl_target = trial.suggest_float("kl_target", 0.01, 0.1, step=0.01)
                 cmd += f" --kl --kltarg {kl_target}"
             else:
-                clip_range = trial.suggest_float("clip_range", 0.05, 0.2, step=0.01)
+                clip_range = trial.suggest_float("clip_range", 0.05, 0.35, step=0.05)
                 cmd += f" --clip {clip_range}"
     return cmd
 
 
 def objective(trial: optuna.Trial, algo: str, env_id: str,
-              n_envs: int=1, seed: int=None, **kwargs):
+              n_envs: int = 1, seed: int = None, **kwargs):
     """
         args:
             algo=ppo, trpo, a2c
@@ -89,8 +93,8 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
         env, _ = model.get_cnn_env(env_id, n_envs, seed)
         eval_env, _ = model.get_cnn_env(env_id, 1, seed)
     else:
-        # get_mlp_env
-        pass
+        env, _ = model.get_mlp_env(env_id, n_envs, seed)
+        eval_env, _ = model.get_mlp_env(env_id, 1, seed)
 
     if "learn_ts" not in kwargs.keys():
         kwargs["learn_ts"] = 500_000
@@ -99,7 +103,13 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
 
     mdl, _ = model.get_model(model_str, env, seed)
 
-    callback = TrialEvalCallback(trial, eval_env, prune_after=kwargs["prune_after"], eval_freq=20000, n_eval_episodes=25, verbose=1)
+    callback = TrialEvalCallback(
+        trial,
+        eval_env,
+        prune_after=kwargs["prune_after"],
+        eval_freq=65_000, n_eval_episodes=25, verbose=1,
+        n_envs=n_envs
+    )
     try:
         mdl.learn(kwargs["learn_ts"], callback=callback)
     except optuna.exceptions.TrialPruned:
@@ -114,13 +124,13 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
     return mean_ret
 
 
-def opt_hyperparams(algo: str, env_id: str, n_envs: int=1, seed: int=None, 
-                    study_name="tuning", store_dir: str="hyperparam_studies/",
+def opt_hyperparams(algo: str, env_id: str, n_envs: int = 1, seed: int = None,
+                    study_name="tuning", store_dir: str = "hyperparam_studies/",
                     n_trials=50, **kwargs):
     """
         args:
             algo=ppo, trpo, a2c
-            seed=seed to pass to model creator, env creator
+            seed=seed to pass to model creator, env creator, TPEsampler
             n_envs=number of parallelized envs to create
             env_id=env id
             prune_after
@@ -132,7 +142,8 @@ def opt_hyperparams(algo: str, env_id: str, n_envs: int=1, seed: int=None,
     """
     study = optuna.create_study(direction="maximize", storage=f"sqlite:///{store_dir}{study_name}.db",
                                 load_if_exists=True, study_name=study_name,
-                                pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=2))
+                                pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=2),
+                                sampler=optuna.samplers.TPESampler(multivariate=True, seed=seed))
     study.optimize(lambda trial: objective(trial, algo, env_id, n_envs, seed, **kwargs),
                    n_trials=n_trials)
     return study

@@ -3,9 +3,7 @@ import gymnasium as gym
 from gymnasium import ObservationWrapper
 import stable_baselines3 as sb3
 import sb3_contrib as sb3c
-from stable_baselines3.common.env_util import make_atari_env, make_vec_env
-from stable_baselines3.common.atari_wrappers import AtariWrapper
-from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, VecFrameStack
+from stable_baselines3.common.vec_env import SubprocVecEnv, VecFrameStack
 import ale_py
 import random
 import torch
@@ -99,19 +97,24 @@ class FixedSeedEnv(gym.Wrapper):
         return self.env.reset(**kwargs)
 
 
-def get_callable_env(env_id: str, seed: Optional[int]):
+def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False):
     def _func():
         import gymnasium as gym  # re-import in subprocess
         env = gym.make(env_id)   # this triggers ALE registration internally
-        from stable_baselines3.common.atari_wrappers import AtariWrapper
-        env = AtariWrapper(env)
+        if wrap_atari:
+            from stable_baselines3.common.atari_wrappers import AtariWrapper
+            env = AtariWrapper(env, terminal_on_life_loss=False)
+        else:
+            from gymnasium.wrappers import ClipReward
+            env = ClipReward(env, -1.0, 1.0)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         env = FixedSeedEnv(env, seed)
         return env
     return _func
 
 
-def get_env(env_id: str, n_envs: int=1, seed: int=None, n_stack: int=1):
+def get_env(env_id: str, n_envs: int=1, seed: int=None, n_stack: int=1,
+            wrap_atari=False):
     """
         Get AtariWrapper, VecEnv, (optional) VecFrameStack of env_name
         Arguments:
@@ -124,7 +127,7 @@ def get_env(env_id: str, n_envs: int=1, seed: int=None, n_stack: int=1):
     """
     if seed is None:
         seed = random.randint(0, 0xefffffff)
-    env_fns = [get_callable_env(env_id, seed=seed+i) for i in range(n_envs)]
+    env_fns = [get_callable_env(env_id, seed=seed+i, wrap_atari=wrap_atari) for i in range(n_envs)]
     env = SubprocVecEnv(env_fns)
     # env = VecNormalize(env, norm_obs=norm_obs, norm_reward=norm_reward)
     if n_stack > 1:
@@ -137,12 +140,12 @@ def get_cnn_env(env_id, n_envs, seed=None):
     """
         Calls get_env with n_stack=4
     """
-    return get_env(env_id, n_envs, seed, n_stack=4)
+    return get_env(env_id, n_envs, seed, n_stack=4, wrap_atari=True)
 
 
 def get_mlp_env(env_id, n_envs, seed=None):
-    # wrap with MLPWrapper
-    return
+    return get_env(env_id, n_envs, seed, n_stack=4, wrap_atari=False)
+
 
 
 def _get_policy(args):
