@@ -29,10 +29,15 @@ if __name__ == "__main__":
     if args.logdir != "" and args.tb_log_name == "":
         warnings.warn("logdir is set, but tb_log_name is empty — logs will be written directly to the logdir.\n")
 
+    n_stack = 4
+    if args.algo.lower() == "rppo":
+        n_stack = 1
     if args.cnn:
-        env, env_seed = model.get_cnn_env(args.env_id, args.n_envs, args.seed)
+        env, env_seed = model.get_cnn_env(args.env_id,
+                                          args.n_envs, args.seed, n_stack)
     else:
-        env, env_seed = model.get_mlp_env(args.env_id, args.n_envs, args.seed)
+        env, env_seed = model.get_mlp_env(args.env_id,
+                                          args.n_envs, args.seed, n_stack)
 
     mdl, mdl_seed = model.get_model(args, env, args.seed)
 
@@ -43,8 +48,8 @@ if __name__ == "__main__":
         mdl.save(args.save_to)
         print(f"Model saved {args.save_to}\n\n")
     except KeyboardInterrupt:
-        key = input("Save model? [y/any]: ")
-        if key in ["y", "Y"]:
+        key = input("Save model? [y/N]: ")
+        if key.lower() == "y":
             mdl.save(args.save_to)
             print(f"Model saved {args.save_to}\n\n")
         raise

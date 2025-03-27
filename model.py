@@ -134,20 +134,19 @@ def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
     return env, seed
 
 
-def get_cnn_env(env_id, n_envs, seed=None):
+def get_cnn_env(env_id, n_envs, seed=None, n_stack=4):
     """
-        Calls get_env with n_stack=4,
-        Get AtariWrapper env
+        Calls get_env with AtariWrapper env
     """
-    return get_env(env_id, n_envs, seed, n_stack=4, wrap_atari=True)
+    return get_env(env_id, n_envs, seed, n_stack=n_stack, wrap_atari=True)
 
 
-def get_mlp_env(env_id, n_envs, seed=None):
+def get_mlp_env(env_id, n_envs, seed=None, n_stack=4):
     """
-        Returns get_env, n_stack 4
+        Returns get_env
         No AtariWrapper, only clipped rwd
     """
-    return get_env(env_id, n_envs, seed, n_stack=4, wrap_atari=False)
+    return get_env(env_id, n_envs, seed, n_stack=n_stack, wrap_atari=False)
 
 
 def _get_policy(args):
