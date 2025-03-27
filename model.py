@@ -1,13 +1,11 @@
 import argparse
 import gymnasium as gym
-from gymnasium import ObservationWrapper
 import stable_baselines3 as sb3
 import sb3_contrib as sb3c
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecFrameStack
 import ale_py
 import random
 import torch
-import numpy as np
 import multiprocessing as mp
 import os
 from typing import List, Optional, Union
@@ -15,7 +13,7 @@ os.environ["ALE_DISABLE_LOG"] = "1"
 
 ASTEROIDS_ENVID = "ALE/Asteroids-v5"
 # gym.register(ASTEROIDS_ENVID, )
-# gym.register_envs(ale_py)
+
 
 def linear_schedule(initial_lr: float, final_lr: float = 1e-5):
     def func(progress_remaining: float) -> float:
@@ -23,7 +21,12 @@ def linear_schedule(initial_lr: float, final_lr: float = 1e-5):
     return func
 
 
-def parse_mdl_args(argstr=None):
+def parse_mdl_args(argstr=None, return_parser=False):
+    """
+        If return_parser=True, returns the parser
+        If argstr=None, parses command line args
+        If argstr=str, parses argstr
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--algo", type=str, required=True, 
                         help="Algorithm (ppo, rppo, trpo, a2c)")
@@ -65,18 +68,9 @@ def parse_mdl_args(argstr=None):
                         help="n_epochs argument to model")
     parser.add_argument("--logdir", type=str, default="",
                         help="Tensorboard log directory")
+    if return_parser:
+        return parser
     return parser.parse_args(argstr.split() if argstr is not None else None)
-
-
-class ScaleObsTo01(ObservationWrapper):
-    def __init__(self, env):
-        super().__init__(env)
-        self.observation_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=env.observation_space.shape, dtype=np.float32)
-    
-    def observation(self, obs):
-        obs = np.clip(obs.astype(np.float32) / 255.0, 0.0, 1.0)
-        return np.transpose(obs, (2, 0, 1))
 
 
 class FixedSeedEnv(gym.Wrapper):
@@ -84,6 +78,7 @@ class FixedSeedEnv(gym.Wrapper):
         First reset according to specified seed,
         further resets are stochastic
     """
+
     def __init__(self, env, seed):
         super().__init__(env)
         self._seed = seed
@@ -113,10 +108,12 @@ def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False):
     return _func
 
 
-def get_env(env_id: str, n_envs: int=1, seed: int=None, n_stack: int=1,
+def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
             wrap_atari=False):
     """
-        Get AtariWrapper, VecEnv, (optional) VecFrameStack of env_name
+        Get AtariWrapper, VecEnv, (optional) VecFrameStack
+            of env_id (if image obs)
+        Get ClipReward, VecEnv, (optional) VecFrameStack of env_id (if mlp obs)
         Arguments:
             env_id: corresponds to env_id in gym.make
             n_envs: number of environments in parallel (for vec_env)
@@ -127,7 +124,8 @@ def get_env(env_id: str, n_envs: int=1, seed: int=None, n_stack: int=1,
     """
     if seed is None:
         seed = random.randint(0, 0xefffffff)
-    env_fns = [get_callable_env(env_id, seed=seed+i, wrap_atari=wrap_atari) for i in range(n_envs)]
+    env_fns = [get_callable_env(env_id, seed=seed+i, wrap_atari=wrap_atari)
+               for i in range(n_envs)]
     env = SubprocVecEnv(env_fns)
     # env = VecNormalize(env, norm_obs=norm_obs, norm_reward=norm_reward)
     if n_stack > 1:
@@ -138,12 +136,17 @@ def get_env(env_id: str, n_envs: int=1, seed: int=None, n_stack: int=1,
 
 def get_cnn_env(env_id, n_envs, seed=None):
     """
-        Calls get_env with n_stack=4
+        Calls get_env with n_stack=4,
+        Get AtariWrapper env
     """
     return get_env(env_id, n_envs, seed, n_stack=4, wrap_atari=True)
 
 
 def get_mlp_env(env_id, n_envs, seed=None):
+    """
+        Returns get_env, n_stack 4
+        No AtariWrapper, only clipped rwd
+    """
     return get_env(env_id, n_envs, seed, n_stack=4, wrap_atari=False)
 
 
@@ -162,13 +165,20 @@ def fix_mp_macos():
     mp.set_start_method("fork", force=True)
 
 
-def get_model(argstr, env, seed=None):
+def get_model(args, env, seed=None):
     """
-        Get PPO, TRPO, A2C models based on argstr, pass -h for list of args
+        Get PPO, TRPO, A2C models based on args,
+        pass -h for list of args, or pass argparse.Namespace obj
+
+        Get parsed args from parse_mdl_args()
 
         Returns (model, seed)
     """
-    args = parse_mdl_args(argstr)
+    if isinstance(args, str):
+        args = parse_mdl_args(args)
+    elif not isinstance(args, argparse.Namespace):
+        raise TypeError("Expected string or argparse.Namespace for args")
+
     args.algo = args.algo.lower()
     if seed is None:
         seed = random.randint(0, 0xefffffff)
