@@ -7,7 +7,7 @@ import gc
 
 
 class TrialEvalCallback(BaseCallback):
-    def __init__(self, trial, eval_env, prune_after=500_000, eval_freq=15000, 
+    def __init__(self, trial, eval_env, prune_after=500_000, eval_freq=15000,
                  n_eval_episodes=25, verbose=0, n_envs=1):
         super().__init__(verbose)
         self.trial = trial

@@ -147,7 +147,6 @@ def get_mlp_env(env_id, n_envs, seed=None):
     return get_env(env_id, n_envs, seed, n_stack=4, wrap_atari=False)
 
 
-
 def _get_policy(args):
     policy = "CnnPolicy" if args.cnn else "MlpPolicy"
     if args.algo == "rppo":
@@ -182,9 +181,15 @@ def get_model(argstr, env, seed=None):
         case "trpo":
             _dict = _get_trpo(args, env, seed)
             mdl = sb3c.TRPO(**_dict)
+        case "a2c":
+            _dict = _get_a2c(args, env, seed)
+            mdl = sb3.A2C(**_dict)
+        case "rppo":
+            _dict = _get_rppo(args, env, seed)
+            mdl = sb3c.RecurrentPPO(**_dict)
     print(_dict)
     return mdl, seed
-    
+
 
 def _get_ppo(args, env, seed):
     lr = linear_schedule(args.lrstart, args.lrend) if args.lrsched else args.lr
@@ -244,6 +249,43 @@ def _get_trpo(args, env, seed):
         normalize_advantage=True,
         target_kl=args.kltarg,
         verbose=1,
+    )
+
+    if args.logdir != "":
+        mdl_dict["tensorboard_log"] = args.logdir
+
+    return mdl_dict
+
+
+def _get_rppo(args, env, seed):
+    mdl_dict = _get_ppo(args, env, seed)
+    # can add specific RPPO args
+    return mdl_dict
+
+
+def _get_a2c(args, env, seed):
+    lr = linear_schedule(args.lrstart, args.lrend) if args.lrsched else args.lr
+    policy_kwargs = dict(
+        net_arch=dict(
+            pi=[args.fc1, args.fc2],
+            vf=[args.fc1, args.fc2]
+        ),
+        normalize_images=args.cnn,
+    )
+
+    mdl_dict = dict(
+        policy=_get_policy(args),
+        device=_get_dev(args),
+        env=env,
+        seed=seed,
+        learning_rate=lr,
+        policy_kwargs=policy_kwargs,
+        verbose=1,
+        n_steps=args.n_steps,
+        normalize_advantage=True,
+        gamma=args.gamma,
+        gae_lambda=args.gae,
+        ent_coef=args.entcoef
     )
 
     if args.logdir != "":
