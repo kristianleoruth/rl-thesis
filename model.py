@@ -102,7 +102,9 @@ def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False):
         else:
             from gymnasium.wrappers import ClipReward
             env = ClipReward(env, -1.0, 1.0)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
+        from stable_baselines3.common.monitor import Monitor
+        env = Monitor(env)
+        # env = gym.wrappers.RecordEpisodeStatistics(env)
         env = FixedSeedEnv(env, seed)
         return env
     return _func
