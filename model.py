@@ -21,13 +21,13 @@ def linear_schedule(initial_lr: float, final_lr: float = 1e-5):
     return func
 
 
-def parse_mdl_args(argstr=None, return_parser=False):
+def parse_mdl_args(argstr=None, return_parser=False, add_help=True):
     """
         If return_parser=True, returns the parser
         If argstr=None, parses command line args
         If argstr=str, parses argstr
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(add_help=add_help)
     parser.add_argument("--algo", type=str, required=True, 
                         help="Algorithm (ppo, rppo, trpo, a2c)")
     parser.add_argument("--fc1", type=int, default=256, required=False,

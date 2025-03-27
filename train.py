@@ -4,9 +4,9 @@ import warnings
 
 
 if __name__ == "__main__":
-    mdl_parser = model.parse_mdl_args(return_parser=True)
+    mdl_parser = model.parse_mdl_args(return_parser=True, add_help=False)
 
-    train_parser = argparse.ArgumentParser()
+    train_parser = argparse.ArgumentParser(add_help=False)
     train_parser.add_argument("--tb_log_name", type=str, default="",
                               help="Tensorboard log name")
     train_parser.add_argument("--env_id", type=str,
