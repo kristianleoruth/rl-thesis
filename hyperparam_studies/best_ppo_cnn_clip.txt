@@ -14,6 +14,26 @@ python train.py --algo ppo --fc1 512 --fc2 512 --clip 0.25 --batch_size 2048 --e
 
 # cosine annealed full run
 python train.py --algo ppo --fc1 512 --fc2 512 --clip 0.25 --batch_size 2048 --entcoef 0.02 --gae 0.94 --gamma 0.99 --lr 0.00015 --n_epochs 10 --n_steps 1024 --vfcoef 0.2 --n_envs 24 --env_id ALE/Asteroids-v5 --cnn --timesteps 100000000 --logdir ./tblogs --tb_log_name ppo_cnn_clip_trial18_100m --save_to ./saved_models/ppo_cnn_clip_trial_18_100m --seed 1234 --lrcos
+----------------------------------------                                                                                                   
+| rollout/                |            |                                                                                                   
+|    ep_len_mean          | 233        |                                                                                                   
+|    ep_rew_mean          | 28.3       |                                                                                                   
+| time/                   |            |                                                                                                   
+|    fps                  | 1307       |                                                                                                   |    iterations           | 2301       |
+|    time_elapsed         | 43248      |
+|    total_timesteps      | 56549376   |
+| train/                  |            |
+|    approx_kl            | 0.05241492 |
+|    clip_fraction        | 0.156      |
+|    clip_range           | 0.25       |
+|    entropy_loss         | -0.578     |
+|    explained_variance   | 0.887      |
+|    learning_rate        | 6.58e-05   |
+|    loss                 | 0.126      |
+|    n_updates            | 23000      |
+|    policy_gradient_loss | -0.0379    |
+|    value_loss           | 1.01       |
+---------------------------------------- 
 
 Try --clip 0.2, --lrcos --timesteps 100_000_000
 - Value: 12.4 (Trial 2)

@@ -1,6 +1,11 @@
 import model
 import argparse
 import warnings
+from stable_baselines3.common.callbacks import BaseCallback
+
+
+class EvalAndSaveCallback(BaseCallback):
+    def __init__(self, verbose: int = 1):
 
 
 if __name__ == "__main__":
