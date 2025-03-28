@@ -2,10 +2,42 @@ import model
 import argparse
 import warnings
 from stable_baselines3.common.callbacks import BaseCallback
+import os
 
 
 class EvalAndSaveCallback(BaseCallback):
-    def __init__(self, verbose: int = 1):
+    def __init__(self, check_freq=50_000, name="tmp", save_dir="./saved_models", verbose: int = 1):
+        super().__init__(verbose)
+        self.check_freq = check_freq
+        self.name = name
+        self.best_mean_reward = 0
+        self.last_saved_path = None
+        self.save_dir = os.path.join(save_dir, "tmp")
+        os.makedirs(self.save_dir, exist_ok=True)
+
+    def _on_step(self):
+        if self.n_calls % self.check_freq != 0:
+            return True
+        reward = self.logger.name_to_value.get("rollout/ep_rew_mean")
+        if reward is None:
+            return True
+
+        if reward > self.best_mean_reward:
+            self.best_mean_reward = reward
+            save_path = os.path.join(
+                self.save_dir,
+                f"{self.name}_{self.num_timesteps}_rew{reward:.1f}.zip"
+            )
+            self.model.save(save_path)
+            if self.last_saved_path and os.path.exists(self.last_saved_path):
+                os.remove(self.last_saved_path)
+                if self.verbose:
+                    print(f"Deleted previous checkpoint: {self.last_saved_path}")
+            self.last_saved_path = save_path
+            if self.verbose:
+                print(f"New best mean reward: {reward:.2f} — model saved to {save_path}")
+
+        return True
 
 
 if __name__ == "__main__":
@@ -49,7 +81,8 @@ if __name__ == "__main__":
     print(f"Seeds used:\nModel: {mdl_seed}\nEnv: {env_seed}")
 
     try:
-        mdl.learn(args.timesteps, tb_log_name=args.tb_log_name)
+        callback = EvalAndSaveCallback(name=args.tb_log_name or "unnamed", save_dir=os.path.dirname(args.save_to))
+        mdl.learn(args.timesteps, tb_log_name=args.tb_log_name, callback=callback)
         mdl.save(args.save_to)
         print(f"Model saved {args.save_to}\n\n")
     except KeyboardInterrupt:
