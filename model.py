@@ -9,10 +9,18 @@ import torch
 import multiprocessing as mp
 import os
 from typing import List, Optional, Union
+import math
 os.environ["ALE_DISABLE_LOG"] = "1"
 
 ASTEROIDS_ENVID = "ALE/Asteroids-v5"
 # gym.register(ASTEROIDS_ENVID, )
+
+
+def cosine_schedule(initial_value, min_lr=1e-5):
+    def func(progress_remaining):
+        cosine_decay = 0.5 * (1 + math.cos(math.pi * (1 - progress_remaining)))
+        return min_lr + (initial_value - min_lr) * cosine_decay
+    return func
 
 
 def linear_schedule(initial_lr: float, final_lr: float = 1e-5):
@@ -37,7 +45,9 @@ def parse_mdl_args(argstr=None, return_parser=False, add_help=True):
     parser.add_argument("--cnn", action="store_true", required=False,
                         help="Use convolutional (Cnn) policy")
     parser.add_argument("--lrsched", action="store_true", required=False,
-                        help="Use scheduled learning rate")
+                        help="Use scheduled learning rate (linear")
+    parser.add_argument("--lrcos", action="store_true", required=False,
+                        help="Use scheduled learning rate (cosine)")
     parser.add_argument("--lr", type=float, default=3e-4, required=False,
                         help="Define learning rate")
     parser.add_argument("--lrstart", "--lrs", type=float, default=3e-4, required=False,
@@ -202,8 +212,16 @@ def get_model(args, env, seed=None):
     return mdl, seed
 
 
+def _get_lr(args):
+    if args.lrcos:
+        return cosine_schedule(args.lr)
+    if args.lrsched:
+        return linear_schedule(args.lrstart, args.lrend)
+    return args.lr
+
+
 def _get_ppo(args, env, seed):
-    lr = linear_schedule(args.lrstart, args.lrend) if args.lrsched else args.lr
+    lr = _get_lr(args)
     policy_kwargs = dict(
         net_arch=dict(
             pi=[args.fc1, args.fc2],
@@ -240,7 +258,7 @@ def _get_ppo(args, env, seed):
 
 
 def _get_trpo(args, env, seed):
-    lr = linear_schedule(args.lrstart, args.lrend) if args.lrsched else args.lr
+    lr = _get_lr(args)
     policy_kwargs = dict(
         net_arch=[args.fc1, args.fc2],
         normalize_images=args.cnn,
@@ -275,7 +293,7 @@ def _get_rppo(args, env, seed):
 
 
 def _get_a2c(args, env, seed):
-    lr = linear_schedule(args.lrstart, args.lrend) if args.lrsched else args.lr
+    lr = _get_lr(args)
     policy_kwargs = dict(
         net_arch=dict(
             pi=[args.fc1, args.fc2],
