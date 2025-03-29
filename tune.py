@@ -83,7 +83,7 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             n_steps = trial.suggest_categorical("n_steps", [256, 512])
             batch_size = trial.suggest_categorical("batch_size", [4, 8, 12])
             if batch_size > n_envs:
-                raise optuna.exception.TrialPruned()
+                raise optuna.exceptions.TrialPruned()
 
             n_epochs = trial.suggest_int("n_epochs", 3, 7, step=1)
 
