@@ -7,7 +7,7 @@ import gc
 
 
 class TrialEvalCallback(BaseCallback):
-    def __init__(self, trial, eval_env, prune_after=500_000, eval_freq=15000,
+    def __init__(self, trial, eval_env, prune_after=100_000, eval_freq=15000,
                  n_eval_episodes=25, verbose=0, n_envs=1):
         super().__init__(verbose)
         self.trial = trial
@@ -70,22 +70,22 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
                 clip_range = trial.suggest_float("clip_range", 0.05, 0.35, step=0.05)
                 cmd += f" --clip {clip_range}"
         case "rppo":
-            lr = trial.suggest_float(
-                    "lr",
-                    1e-5 if cnn else 1e-4,
-                    1e-4 if cnn else 1e-3,
-                    step=1e-5 if cnn else 1e-4
+            lr = trial.suggest_categorical(
+                "lr",
+                [5e-5, 7e-5, 1e-4] if cnn 
+                else [1e-4, 5e-4, 1e-3]
             )
-            gae_lambda = trial.suggest_float("gae_lambda", 0.93, 0.99, step=0.01)
-            gamma = trial.suggest_float("gamma", 0.95, 0.99, step=0.01)
+                                           
+            gae_lambda = trial.suggest_float("gae_lambda", 0.95, 0.97, step=0.01)
+            gamma = trial.suggest_float("gamma", 0.97, 0.99, step=0.01)
             vf_coef = trial.suggest_float("vf_coef", 0.2, 0.7, step=0.1)
             ent_coef = trial.suggest_float("ent_coef", 0.005, 0.02, step=0.005)
-            n_steps = trial.suggest_categorical("n_steps", [128, 256, 512])
-            batch_size = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
+            n_steps = trial.suggest_categorical("n_steps", [256, 512])
+            batch_size = trial.suggest_categorical("batch_size", [4, 8, 12])
             if batch_size > n_envs:
                 raise optuna.exception.TrialPruned()
 
-            n_epochs = trial.suggest_int("n_epochs", 3, 10, step=1)
+            n_epochs = trial.suggest_int("n_epochs", 3, 7, step=1)
 
             cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma}"
             cmd += f" --vfcoef {vf_coef} --entcoef {ent_coef} --n_steps {n_steps}"
@@ -136,7 +136,7 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
         trial,
         eval_env,
         prune_after=kwargs["prune_after"],
-        eval_freq=65_000, n_eval_episodes=25, verbose=1,
+        eval_freq=50_000, n_eval_episodes=25, verbose=1,
         n_envs=n_envs
     )
     try:

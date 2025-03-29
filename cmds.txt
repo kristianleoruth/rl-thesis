@@ -2,7 +2,8 @@ python -u tune.py --algo ppo --env_id ALE/Asteroids-v5 --n_envs 2 --kl --learn_t
 
 python tune.py --algo ppo --env_id ALE/Asteroids-v5 --n_envs 24 --learn_ts 1000000 --seed 1234 --cnn --prune_after 300_000 --name tuningclip
 
-
+rppo:
+python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 8 --n_trials 100 --cnn --learn_ts 500000 --study_name rppo_clip_cnn_1 --store_dir hyperparam_studies/ --seed 1234 --prune_after 50000
 
 seeds to train:
 1234

@@ -102,41 +102,78 @@ class FixedSeedEnv(gym.Wrapper):
         return self.env.reset(**kwargs)
 
 
-def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False):
+class ScaledReward(gym.Wrapper):
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.prev_obs = None
+
+    def step(self, action):
+        obs, reward, terminated, truncated, info = self.env.step(action)
+
+        reward /= 100.0
+
+        # Reward shaping heuristic: pixel difference between observations
+        # if self.prev_obs is not None:
+        #     movement_bonus = float((obs != self.prev_obs).sum()) / obs.size
+        #     reward += 0.01 * movement_bonus
+        # self.prev_obs = obs
+        return obs, reward, terminated, truncated, info
+
+
+def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
+                     atari_frame_skip=4, clip_reward=True):
     def _func():
         import gymnasium as gym  # re-import in subprocess
-        env = gym.make(env_id)   # this triggers ALE registration internally
         if wrap_atari:
+            env = gym.make(env_id, render_mode="rgb_array")   # this triggers ALE registration internally
             from stable_baselines3.common.atari_wrappers import AtariWrapper
-            env = AtariWrapper(env, terminal_on_life_loss=False)
+            env = AtariWrapper(env, terminal_on_life_loss=False,
+                               frame_skip=atari_frame_skip,
+                               clip_reward=clip_reward)
         else:
-            from gymnasium.wrappers import ClipReward
-            env = ClipReward(env, -1.0, 1.0)
+            env = gym.make(env_id)
+            if clip_reward:
+                from gymnasium.wrappers import ClipReward
+                env = ClipReward(env, -1.0, 1.0)
         from stable_baselines3.common.monitor import Monitor
-        env = Monitor(env)
         # env = gym.wrappers.RecordEpisodeStatistics(env)
+        if not clip_reward:
+            env = ScaledReward(env)
         env = FixedSeedEnv(env, seed)
+        env = Monitor(env)
         return env
     return _func
 
 
 def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
-            wrap_atari=False):
+            wrap_atari=False, disable_vec_env=False, clip_reward=True):
     """
         Get AtariWrapper, VecEnv, (optional) VecFrameStack
             of env_id (if image obs)
-        Get ClipReward, VecEnv, (optional) VecFrameStack of env_id (if mlp obs)
+        Get ClipReward, SubprocVecEnv, (optional) VecFrameStack of env_id (if mlp obs)
         Arguments:
             env_id: corresponds to env_id in gym.make
             n_envs: number of environments in parallel (for vec_env)
             seed: None -> random, or int seed
             n_stack: Argument to VecFrameStack i.e. how many frames to stack in obs
+            wrap_atari: whether to wrap with AtariWrapper (only for image obs)
+            disable_vec_env: Do not wrap with SubprocVecEnv (overrides n_envs)
         Returns:
             tuple: (atari wrapped vec env, seed used)
     """
     if seed is None:
         seed = random.randint(0, 0xefffffff)
-    env_fns = [get_callable_env(env_id, seed=seed+i, wrap_atari=wrap_atari)
+    if disable_vec_env:
+        env = get_callable_env(env_id, seed=seed,
+                               wrap_atari=wrap_atari, atari_frame_skip=1)()
+        if n_stack > 1:
+            env = gym.wrappers.FrameStackObservation(env, stack_size=n_stack)
+        return env, seed
+
+    env_fns = [get_callable_env(env_id, seed=seed+i,
+                                wrap_atari=wrap_atari, clip_reward=clip_reward,
+                                atari_frame_skip=2)
                for i in range(n_envs)]
     env = SubprocVecEnv(env_fns)
     # env = VecNormalize(env, norm_obs=norm_obs, norm_reward=norm_reward)
@@ -146,19 +183,67 @@ def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
     return env, seed
 
 
-def get_cnn_env(env_id, n_envs, seed=None, n_stack=4):
+def get_cnn_env(env_id, n_envs, seed=None, n_stack=4, clip_reward=True):
     """
         Calls get_env with AtariWrapper env
     """
-    return get_env(env_id, n_envs, seed, n_stack=n_stack, wrap_atari=True)
+    return get_env(env_id, n_envs, seed, n_stack=n_stack, wrap_atari=True, clip_reward=clip_reward)
 
 
-def get_mlp_env(env_id, n_envs, seed=None, n_stack=4):
+def get_mlp_env(env_id, n_envs, seed=None, n_stack=4, clip_reward=True):
     """
         Returns get_env
         No AtariWrapper, only clipped rwd
     """
-    return get_env(env_id, n_envs, seed, n_stack=n_stack, wrap_atari=False)
+    return get_env(env_id, n_envs, seed, n_stack=n_stack, wrap_atari=False, clip_reward=clip_reward)
+
+
+def get_video_env(env_id, seed=None, n_stack=4,
+                  save_to="./saved_models/videos/", filename="unnamed"):
+    os.makedirs(save_to, exist_ok=True)
+    env, seed = get_env(env_id, seed=seed, n_stack=n_stack, wrap_atari=True, disable_vec_env=True)
+    env = gym.wrappers.RecordVideo(env, video_folder=save_to, name_prefix=filename)
+    return env, seed
+
+
+def run_episode_with_model(env, algo: str, model_path: str,
+                           deterministic: bool = True):
+    """
+    Loads a model and runs one full episode in the given env.
+
+    Args:
+        env: Gym environment (should be already wrapped with RecordVideo)
+        algo: Algorithm name (ppo, rppo, a2c, trpo)
+        model_path: Path to the saved model .zip file
+        deterministic: Whether to use deterministic actions (default True)
+    """
+    algo = algo.lower()
+
+    if algo == "ppo":
+        model = sb3.PPO.load(model_path)
+    elif algo == "a2c":
+        model = sb3.A2C.load(model_path)
+    elif algo == "trpo":
+        model = sb3c.TRPO.load(model_path)
+    elif algo == "rppo":
+        model = sb3c.RecurrentPPO.load(model_path)
+    else:
+        raise ValueError(f"Unsupported algorithm: {algo}")
+
+    obs, _ = env.reset()
+    obs = obs.squeeze(-1).transpose(1, 2, 0)
+    state = None
+    done = False
+
+    while not done:
+        if algo == "rppo":
+            action, state = model.predict(obs, state=state, deterministic=deterministic)
+        else:
+            action, _ = model.predict(obs, deterministic=deterministic)
+        obs, _, terminated, truncated, _ = env.step(action)
+        obs = obs.squeeze(-1).transpose(1, 2, 0)
+        done = terminated or truncated
+    env.close()
 
 
 def _get_policy(args):

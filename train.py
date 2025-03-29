@@ -6,7 +6,8 @@ import os
 
 
 class EvalAndSaveCallback(BaseCallback):
-    def __init__(self, check_freq=50_000, name="tmp", save_dir="./saved_models", verbose: int = 1):
+    def __init__(self, check_freq=150_000, name="tmp", save_dir="./saved_models", verbose: int = 1,
+                 start_saving_after_ts=5_000_000):
         super().__init__(verbose)
         self.check_freq = check_freq
         self.name = name
@@ -71,10 +72,16 @@ if __name__ == "__main__":
         n_stack = 1
     if args.cnn:
         env, env_seed = model.get_cnn_env(args.env_id,
-                                          args.n_envs, args.seed, n_stack)
+                                          args.n_envs,
+                                          args.seed,
+                                          n_stack,
+                                          clip_reward=False)
     else:
         env, env_seed = model.get_mlp_env(args.env_id,
-                                          args.n_envs, args.seed, n_stack)
+                                          args.n_envs,
+                                          args.seed,
+                                          n_stack,
+                                          clip_reward=False)
 
     mdl, mdl_seed = model.get_model(args, env, args.seed)
 
