@@ -3,6 +3,7 @@ import gymnasium as gym
 import stable_baselines3 as sb3
 import sb3_contrib as sb3c
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecFrameStack
+from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 import ale_py
 import random
 import torch
@@ -78,6 +79,8 @@ def parse_mdl_args(argstr=None, return_parser=False, add_help=True):
                         help="n_epochs argument to model")
     parser.add_argument("--logdir", type=str, default="",
                         help="Tensorboard log directory")
+    parser.add_argument("--max_grad_norm", type=float, default=0.5,
+                        help="max_grad_norm arg for a2c")
     if return_parser:
         return parser
     return parser.parse_args(argstr.split() if argstr is not None else None)
@@ -385,6 +388,9 @@ def _get_a2c(args, env, seed):
             vf=[args.fc1, args.fc2]
         ),
         normalize_images=args.cnn,
+        # Stabilizes according to SB3 A2C docs
+        optimizer_class=RMSpropTFLike,
+        optimizer_kwargs=dict(eps=1e-5)
     )
 
     mdl_dict = dict(
@@ -399,7 +405,9 @@ def _get_a2c(args, env, seed):
         normalize_advantage=True,
         gamma=args.gamma,
         gae_lambda=args.gae,
-        ent_coef=args.entcoef
+        ent_coef=args.entcoef,
+        vf_coef=args.vfcoef,
+        max_grad_norm=args.max_grad_norm,
     )
 
     if args.logdir != "":

@@ -97,6 +97,21 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             else:
                 clip_range = trial.suggest_float("clip_range", 0.1, 0.25, step=0.05)
                 cmd += f" --clip {clip_range}"
+        case "a2c":
+            lr = trial.suggest_categorical(
+                "lr",
+                [5e-5, 7e-5, 1e-4] if cnn
+                else [1e-4, 5e-4, 7e-4, 1e-3]
+            )
+            gamma = trial.suggest_float("gamma", 0.97, 0.99, step=0.01)
+            gae_lambda = trial.suggest_float("gae_lambda", 0.95, 0.98, step=0.01)
+            vf_coef = trial.suggest_float("vf_coef", 0.2, 0.7, step=0.1)
+            ent_coef = trial.suggest_float("ent_coef", 0.005, 0.02, step=0.005)
+            n_steps = trial.suggest_categorical("n_steps", [5, 7, 10])
+            max_grad_norm = trial.suggest_categorical("max_grad_norm", [0.25, 0.5, 0.75])
+            
+            cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma} --max_grad_norm {max_grad_norm}"
+            cmd += f" --vfcoef {vf_coef} --entcoef {ent_coef} --n_steps {n_steps}"
 
     return cmd
 
