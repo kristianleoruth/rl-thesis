@@ -1,0 +1,65 @@
+- trial_id, value
+    - lr = 
+    - gamma = 
+    - gae_lambda = 
+    - vf_coef = 
+    - ent_coef = 
+    - n_steps = 
+    - max_grad_norm = 
+
+python train.py --args
+
+- trial 90, 15.98
+    - lr = 5e-5
+    - gamma = 0.99
+    - gae_lambda = 0.96
+    - vf_coef = 0.3
+    - ent_coef = 0.01
+    - n_steps = 7
+    - max_grad_norm = 0.25
+
+python train.py --algo a2c --fc1 512 --fc2 512 --lr 5e-5 --gamma 0.99 --gae 0.96 --vfcoef 0.3 --entcoef 0.01 --n_steps 7 --max_grad_norm 0.25 --logidr ./tblogs --tb_log_name a2c_cnn_trial90 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial98
+
+- trial 98, 15.86
+    - lr = 7e-5
+    - gamma = 0.99
+    - gae_lambda = 0.95
+    - vf_coef = 0.3
+    - ent_coef = 0.02
+    - n_steps = 5
+    - max_grad_norm = 0.25
+
+python train.py --algo a2c --fc1 512 --fc2 512 --lr 7e-5 --gamma 0.99 --gae 0.95 --vfcoef 0.3 --entcoef 0.02 --n_steps 5 --max_grad_norm 0.25 --logidr ./tblogs --tb_log_name a2c_cnn_trial98 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial98
+
+- trial 24, 15.74
+    - lr = 1e-4
+    - gamma = 0.97
+    - gae_lambda = 0.98
+    - vf_coef = 0.2
+    - ent_coef = 0.02
+    - n_steps = 5
+    - max_grad_norm = 0.5
+
+python train.py --algo a2c --fc1 512 --fc2 512 --lr 1e-4 --gamma 0.97 --gae 0.98 --vfcoef 0.2 --entcoef 0.02 --n_steps 5 --max_grad_norm 0.5 --logidr ./tblogs --tb_log_name a2c_cnn_trial24 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial24
+
+- trial 80, 15.58
+    - lr = 1e-4
+    - gamma = 0.98
+    - gae_lambda = 0.95
+    - vf_coef = 0.2
+    - ent_coef = 0.02
+    - n_steps = 5
+    - max_grad_norm = 0.75
+
+python train.py --algo a2c --fc1 512 --fc2 512 --lr 1e-4 --gamma 0.98 --gae 0.95 --vfcoef 0.2 --entcoef 0.02 --n_steps 5 --max_grad_norm 0.75 --logidr ./tblogs --tb_log_name a2c_cnn_trial80 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial80
+
+- trial 66, 15.38
+    - lr = 5e-5
+    - gamma = 0.99
+    - gae_lambda = 0.95
+    - vf_coef = 0.2
+    - ent_coef = 0.02
+    - n_steps = 5
+    - max_grad_norm = 0.25
+
+python train.py --algo a2c --fc1 512 --fc2 512 --lr 5e-5 --gamma 0.99 --gae 0.95 --vfcoef 0.2 --entcoef 0.02 --n_steps 5 --max_grad_norm 0.25 --logidr ./tblogs --tb_log_name a2c_cnn_trial66 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial66

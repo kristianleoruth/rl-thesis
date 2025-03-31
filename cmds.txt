@@ -1,9 +1,16 @@
 python -u tune.py --algo ppo --env_id ALE/Asteroids-v5 --n_envs 2 --kl --learn_ts 1500000 --seed 1234 --cnn --prune_after 500_000 2>&1 | tee trials.log
 
-python tune.py --algo ppo --env_id ALE/Asteroids-v5 --n_envs 24 --learn_ts 1000000 --seed 1234 --cnn --prune_after 300_000 --name tuningclip
+ppo:
+python tune.py --algo ppo --env_id ALE/Asteroids-v5 --n_envs 24 --learn_ts 1000000 --seed 1234 --cnn --prune_after 300_000 --store_dir hyperparam_studies/ppo --name clip_cnn
 
 rppo:
-python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 8 --n_trials 100 --cnn --learn_ts 500000 --study_name rppo_clip_cnn_1 --store_dir hyperparam_studies/ --seed 1234 --prune_after 50000
+python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 8 --n_trials 100 --cnn --learn_ts 500000 --study_name rppo_clip_cnn_1 --store_dir hyperparam_studies/rppo --seed 1234 --prune_after 50000
+
+python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 32 --n_trials 100 --cnn --learn_ts 300000 --study_name rppo_clip_cnn1 --store_dir hyperparam_studies/rppo --seed 1234 --prune_after 25000
+python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 32 --n_trials 100 --cnn --learn_ts 300000 --study_name rppo_clip_cnn1 --store_dir hyperparam_studies/rppo --seed 1234 --prune_after 25000
+
+a2c:
+python tune.py --algo a2c --env ALE/Asteroids-v5 --n_envs 16 --n_trials 100 --cnn --learn_ts 1000000 --prune_after 50000 --study_name a2c_cnn_1 --store_dir hyperparam_studies/a2c --seed 1234
 
 seeds to train:
 1234

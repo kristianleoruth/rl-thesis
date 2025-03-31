@@ -42,10 +42,11 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             for ppo, can pass kl=True to tune kl target
     """
     cmd = f"--algo {algo} --fc1 512 --fc2 512"
-    cnn = "cnn" in kwargs.keys() and kwargs["cnn"]
 
-    if cnn:
+    if "cnn" in kwargs.keys() and kwargs["cnn"]:
+        cnn = True
         cmd += " --cnn"
+        
     match algo:
         case "ppo":
             lr = trial.suggest_float("lr", 5e-5 if cnn else 5e-4, 3e-4 if cnn else 3e-3,
@@ -72,20 +73,22 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
         case "rppo":
             lr = trial.suggest_categorical(
                 "lr",
-                [5e-5, 7e-5, 1e-4] if cnn 
+                [5e-5, 7e-5, 1e-4] if cnn
                 else [1e-4, 5e-4, 1e-3]
             )
-                                           
-            gae_lambda = trial.suggest_float("gae_lambda", 0.95, 0.97, step=0.01)
-            gamma = trial.suggest_float("gamma", 0.97, 0.99, step=0.01)
+
+            gamma = 0.99
+            gae_lambda = 0.95
+            # gae_lambda = trial.suggest_float("gae_lambda", 0.95, 0.97, step=0.01)
+            # gamma = trial.suggest_float("gamma", 0.97, 0.99, step=0.01)
             vf_coef = trial.suggest_float("vf_coef", 0.2, 0.7, step=0.1)
             ent_coef = trial.suggest_float("ent_coef", 0.005, 0.02, step=0.005)
             n_steps = trial.suggest_categorical("n_steps", [256, 512])
-            batch_size = trial.suggest_categorical("batch_size", [4, 8, 12])
-            if batch_size > n_envs:
+            batch_size = trial.suggest_categorical("batch_size", [256, 512, 1024])
+            if batch_size > n_envs * n_steps:
                 raise optuna.exceptions.TrialPruned()
 
-            n_epochs = trial.suggest_int("n_epochs", 3, 7, step=1)
+            n_epochs = trial.suggest_int("n_epochs", 3, 6, step=1)
 
             cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma}"
             cmd += f" --vfcoef {vf_coef} --entcoef {ent_coef} --n_steps {n_steps}"
@@ -112,6 +115,8 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             
             cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma} --max_grad_norm {max_grad_norm}"
             cmd += f" --vfcoef {vf_coef} --entcoef {ent_coef} --n_steps {n_steps}"
+        case "trpo":
+            pass
 
     return cmd
 
@@ -162,7 +167,9 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
         trial.set_user_attr("fail_reason", str(e))
         raise
 
-    mean_ret, _ = evaluate_policy(mdl, eval_env, n_eval_episodes=50)
+    mean_ret, std_ret = evaluate_policy(mdl, eval_env, n_eval_episodes=50,
+                                        deterministic=False)
+    print(f"\n[ObjectiveEvaluation] Mean reward: {mean_ret} | Std reward: {std_ret}\n")
     del mdl, eval_env, env
     gc.collect()
     return mean_ret
@@ -184,7 +191,7 @@ def opt_hyperparams(algo: str, env_id: str, n_envs: int = 1, seed: int = None,
             learn_ts=int, learning timesteps
             prune_after=int, start pruning after N steps
     """
-    study = optuna.create_study(direction="maximize", storage=f"sqlite:///{store_dir}{study_name}.db",
+    study = optuna.create_study(direction="maximize", storage=f"sqlite:///{store_dir}.db",
                                 load_if_exists=True, study_name=study_name,
                                 pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=2),
                                 sampler=optuna.samplers.TPESampler(multivariate=True, seed=seed))

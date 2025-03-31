@@ -14,6 +14,7 @@ import math
 os.environ["ALE_DISABLE_LOG"] = "1"
 
 ASTEROIDS_ENVID = "ALE/Asteroids-v5"
+ASTEROIDS_RAM_ENVID = "ALE/Asteroids-ram-v5"
 # gym.register(ASTEROIDS_ENVID, )
 
 
@@ -129,7 +130,7 @@ def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
     def _func():
         import gymnasium as gym  # re-import in subprocess
         if wrap_atari:
-            env = gym.make(env_id, render_mode="rgb_array")   # this triggers ALE registration internally
+            env = gym.make(env_id, render_mode="rgb_array")
             from stable_baselines3.common.atari_wrappers import AtariWrapper
             env = AtariWrapper(env, terminal_on_life_loss=False,
                                frame_skip=atari_frame_skip,
@@ -412,7 +413,6 @@ def _get_a2c(args, env, seed):
 
     if args.logdir != "":
         mdl_dict["tensorboard_log"] = args.logdir
-
     return mdl_dict
 
 
