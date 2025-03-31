@@ -81,7 +81,7 @@ def parse_mdl_args(argstr=None, return_parser=False, add_help=True):
     parser.add_argument("--logdir", type=str, default="",
                         help="Tensorboard log directory")
     parser.add_argument("--max_grad_norm", type=float, default=0.5,
-                        help="max_grad_norm arg for a2c")
+                        help="max_grad_norm arg for a2c, trpo")
     if return_parser:
         return parser
     return parser.parse_args(argstr.split() if argstr is not None else None)

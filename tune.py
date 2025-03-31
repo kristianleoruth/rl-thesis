@@ -20,7 +20,7 @@ class TrialEvalCallback(BaseCallback):
 
     def _on_step(self):
         self.step += self.n_envs
-        if self.step % self.eval_freq != 0 or self.prune_after > self.step:
+        if self.step % self.eval_freq != 0:
             return True
 
         mean_reward, _ = evaluate_policy(
@@ -29,7 +29,7 @@ class TrialEvalCallback(BaseCallback):
 
         self.trial.report(mean_reward, self.step)
 
-        if self.trial.should_prune():
+        if self.trial.should_prune() and self.prune_after <= self.step:
             raise optuna.exceptions.TrialPruned()
 
         return True
@@ -116,8 +116,33 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma} --max_grad_norm {max_grad_norm}"
             cmd += f" --vfcoef {vf_coef} --entcoef {ent_coef} --n_steps {n_steps}"
         case "trpo":
-            pass
-
+            lr = trial.suggest_categorical(
+                "lr",
+                [5e-5, 7e-5, 1e-4] if cnn
+                else [3e-4, 7e-4, 1e-3, 3e-3]
+            )
+            gamma = 0.99
+            gae_lambda = 0.95
+            # batch_size = trial.suggest_categorical(
+            #     "batch_size",
+            #     [512, 1024, 2048, 4096]
+            # )
+            n_steps = trial.suggest_categorical(
+                "n_steps",
+                [512, 1024, 2048]
+            )
+            batch_size = n_envs * n_steps
+            # if batch_size > n_envs * n_steps:
+            #     raise optuna.exceptions.TrialPruned()
+            # max_grad_norm = trial.suggest_categorical("max_grad_norm", [0.25, 0.5, 0.75])
+            trial.set_user_attr("cfg", {
+                "gamma": gamma,
+                "gae_lambda": gae_lambda,
+                "batch_size": batch_size
+            })
+            kl_target = trial.suggest_categorical("kl_target", [0.01, 0.02, 0.03])
+            cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma}"
+            cmd += f" --batch_size {batch_size} --n_steps {n_steps} --kltarg {kl_target}"
     return cmd
 
 
