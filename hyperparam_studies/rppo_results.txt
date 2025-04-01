@@ -1,0 +1,29 @@
+
+72, 17.88
+-batch_size = 256
+-clip_range = 0.2
+-ent_coef = 0.005
+-lr = 7e-5
+-n_epochs = 3
+-n_steps = 256
+-vf_coef = 0.7
+
+python train.py --algo rppo --env ALE/Asteroids-v5 --fc1 512 --fc2 512 --cnn --gamma 0.99 --gae 0.95 --clip 0.2 --batch_size 256 --n_steps 256 --lr 7e-5 --n_epochs 3 --vf_coef 0.7 --entcoef 0.005 --n_envs 32 --timesteps 10000000 --logdir ./tblogs --tb_log_name rppo_clip_cnn_1 --save_to ./saved_models/rppo_clip_cnn_1 --seed 1234
+
+33, 17.78
+-batch_size = 1024
+-clip_range = 0.25
+-ent_coef = 0.005
+-lr = 1e-4
+-n_epochs = 4
+-n_steps = 256
+-vf_coef = 0.6
+
+79, 17.26
+-batch_size = 1024
+-clip_range = 0.2
+-ent_coef = 0.01
+-lr = 1e-4
+-n_epochs = 3
+-n_steps = 256
+-vf_coef = 0.2

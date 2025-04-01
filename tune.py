@@ -121,28 +121,25 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
                 [5e-5, 7e-5, 1e-4] if cnn
                 else [3e-4, 7e-4, 1e-3, 3e-3]
             )
+            kl_target = trial.suggest_categorical("kl_target", [0.01, 0.02, 0.03])
+
             gamma = 0.99
             gae_lambda = 0.95
-            # batch_size = trial.suggest_categorical(
-            #     "batch_size",
-            #     [512, 1024, 2048, 4096]
-            # )
-            n_steps = trial.suggest_categorical(
-                "n_steps",
-                [512, 1024, 2048]
-            )
+            n_steps = 2048
             batch_size = n_envs * n_steps
-            # if batch_size > n_envs * n_steps:
-            #     raise optuna.exceptions.TrialPruned()
-            # max_grad_norm = trial.suggest_categorical("max_grad_norm", [0.25, 0.5, 0.75])
+            cg_max_steps = trial.suggest_categorical("cg_max_steps", [10, 15, 20])
+            cg_damping = trial.suggest_categorical("cg_damping", [0.05, 0.1, 0.2])
+            line_search_max_iter = trial.suggest_categorical("line_search_max_iter", [5, 10, 15])
+            n_critic_updates = trial.suggest_categorical("n_critic_updates", [5, 10, 15])
             trial.set_user_attr("cfg", {
                 "gamma": gamma,
                 "gae_lambda": gae_lambda,
-                "batch_size": batch_size
+                "n_steps": n_steps,
+                "batch_size": batch_size,
             })
-            kl_target = trial.suggest_categorical("kl_target", [0.01, 0.02, 0.03])
-            cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma}"
+            cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma} --n_critic_updates {n_critic_updates}"
             cmd += f" --batch_size {batch_size} --n_steps {n_steps} --kltarg {kl_target}"
+            cmd += f" --cg_max {cg_max_steps} --cg_damp {cg_damping} --ls_max_iter {line_search_max_iter}"
     return cmd
 
 

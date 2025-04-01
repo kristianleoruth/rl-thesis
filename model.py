@@ -82,6 +82,14 @@ def parse_mdl_args(argstr=None, return_parser=False, add_help=True):
                         help="Tensorboard log directory")
     parser.add_argument("--max_grad_norm", type=float, default=0.5,
                         help="max_grad_norm arg for a2c, trpo")
+    parser.add_argument("--cg_max", type=int, default=15,
+                        help="TRPO cg_max_steps")
+    parser.add_argument("--cg_damp", type=float, default=0.1,
+                        help="TRPO cg_damping")
+    parser.add_argument("--ls_max_iter", type=int, default=10,
+                        help="TRPO line_search_max_iter")
+    parser.add_argument("--n_critic_updates", type=int, default=10,
+                        help="TRPO n_critic_updates")
     if return_parser:
         return parser
     return parser.parse_args(argstr.split() if argstr is not None else None)
@@ -367,6 +375,10 @@ def _get_trpo(args, env, seed):
         normalize_advantage=True,
         target_kl=args.kltarg,
         verbose=1,
+        cg_max_steps=args.cg_max,
+        cg_damping=args.cg_damp,
+        line_search_max_iter=args.ls_max_iter,
+        n_critic_updates=args.n_critic_updates,
     )
 
     if args.logdir != "":
