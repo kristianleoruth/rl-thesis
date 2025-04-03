@@ -18,7 +18,7 @@ python train.py --args
     - n_steps = 7
     - max_grad_norm = 0.25
 
-python train.py --algo a2c --fc1 512 --fc2 512 --lr 5e-5 --gamma 0.99 --gae 0.96 --vfcoef 0.3 --entcoef 0.01 --n_steps 7 --max_grad_norm 0.25 --logdir ./tblogs --tb_log_name a2c_cnn_trial90 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial90
+python train.py --algo a2c --fc1 512 --fc2 512 --lr 5e-5 --gamma 0.99 --gae 0.96 --vfcoef 0.3 --entcoef 0.01 --n_steps 7 --max_grad_norm 0.25 --logdir ./tblogs --tb_log_name a2c_cnn_trial90 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial90 --seed 1234
 
 - trial 98, 15.86
     - lr = 7e-5
