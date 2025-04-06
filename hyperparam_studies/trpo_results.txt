@@ -1,0 +1,25 @@
+
+trial 62, value 17.68
+
+python train.py --algo trpo --fc1 512 --fc2 512 --cnn --lr 1e-4 --gae 0.95 --gamma 0.99 --n_critic_updates 10 --n_steps 2048 --batch_size 8192 --kltarg 0.02 --cg_damp 0.05 --cg_max 10 --ls_max_iter 5 --n_envs 4 --timesteps 50000000 --logdir ./tblogs --tb_log_name trpo_cnn_trial_62 --save_to ./saved_models/trpo_cnn_trial_62 --seed 1234
+
+{'policy': 'CnnPolicy', 'device': 'cuda', 'env': <stable_baselines3.common.vec_env.vec_frame_stack.VecFrameStack object at 0x7f25726b9690>, 'seed': 1234, 'learning_rate': 0.0001, 'policy_kwargs': {'net_arch': [512, 512], 'normalize_images': True}, 'n_steps': 2048, 'batch_size': 8192, 'gamma': 0.99, 'gae_lambda': 0.95, 'normalize_advantage': True, 'target_kl': 0.02, 'verbose': 1, 'cg_max_steps': 10, 'cg_damping': 0.05, 'line_search_max_iter': 5, 'n_critic_updates': 10, 'tensorboard_log': './tblogs'}                                                                                     
+Seeds used:
+Model: 1234       
+Env: 1234
+Logging to ./tblogs/trpo_cnn_trial_62_1
+
+
+trial 63, value 17.5
+
+python train.py --algo trpo --fc1 512 --fc2 512 --cnn --lr 1e-4 --gae 0.95 --gamma 0.99 --n_critic_updates 10 --n_steps 2048 --batch_size 8192 --kltarg 0.02 --cg_damp 0.05 --cg_max 10 --ls_max_iter 5 --n_envs 4 --timesteps 50000000 --logdir ./tblogs --tb_log_name trpo_cnn_trial_63 --save_to ./saved_models/trpo_cnn_trial_63 --seed 1234
+
+trial 60, 16.96
+
+python train.py --algo trpo --fc1 512 --fc2 512 --cnn --lr 1e-4 --gae 0.95 --gamma 0.99 --n_critic_updates 10 --n_steps 2048 --batch_size 8192 --kltarg 0.02 --cg_damp 0.05 --cg_max 10 --ls_max_iter 15 --n_envs 4 --timesteps 50000000 --logdir ./tblogs --tb_log_name trpo_cnn_trial_60 --save_to ./saved_models/trpo_cnn_trial_60 --seed 1234
+
+trial 85, 16.88 (same as 62, 63)
+
+python train.py --algo trpo --fc1 512 --fc2 512 --cnn --lr 1e-4 --gae 0.95 --gamma 0.99 --n_critic_updates 10 --n_steps 2048 --batch_size 8192 --kltarg 0.02 --cg_damp 0.05 --cg_max 10 --ls_max_iter 5 --n_envs 4 --timesteps 50000000 --logdir ./tblogs --tb_log_name trpo_cnn_trial_60 --save_to ./saved_models/trpo_cnn_trial_60 --seed 1234
+
+trial 72, 16.6 (same as 62, 63, 85)
