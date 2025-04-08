@@ -7,7 +7,7 @@ import os
 
 class EvalAndSaveCallback(BaseCallback):
     def __init__(self, check_freq=150_000, name="tmp", save_dir="./saved_models", verbose: int = 1,
-                 start_saving_after_ts=5_000_000):
+                 start_saving_after_ts=0):
         super().__init__(verbose)
         self.check_freq = check_freq
         self.name = name
