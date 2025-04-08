@@ -161,11 +161,11 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
     env = None
     eval_env = None
     if "cnn" in kwargs.keys() and kwargs["cnn"]:
-        env, _ = model.get_cnn_env(env_id, n_envs, seed)
-        eval_env, _ = model.get_cnn_env(env_id, 1, seed)
+        env, _ = model.get_cnn_env(env_id, n_envs, seed, clip_reward=False)
+        eval_env, _ = model.get_cnn_env(env_id, 1, seed, clip_reward=False)
     else:
-        env, _ = model.get_mlp_env(env_id, n_envs, seed)
-        eval_env, _ = model.get_mlp_env(env_id, 1, seed)
+        env, _ = model.get_mlp_env(env_id, n_envs, seed, clip_reward=False)
+        eval_env, _ = model.get_mlp_env(env_id, 1, seed, clip_reward=False)
 
     if "learn_ts" not in kwargs.keys():
         kwargs["learn_ts"] = 500_000
