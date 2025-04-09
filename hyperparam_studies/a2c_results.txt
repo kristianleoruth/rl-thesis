@@ -20,6 +20,16 @@ python train.py --args
 
 python train.py --algo a2c --fc1 512 --fc2 512 --lr 5e-5 --gamma 0.99 --gae 0.96 --vfcoef 0.3 --entcoef 0.01 --n_steps 7 --max_grad_norm 0.25 --logdir ./tblogs --tb_log_name a2c_cnn_trial90 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial90 --seed 1234
 
+{'policy': 'CnnPolicy', 'device': 'cuda', 'env': <stable_baselines3.common.vec_env.vec_frame_stack.VecFrameStack object at 0x7f2936c3e4d0>, 'seed':
+ 1234, 'learning_rate': <function cosine_schedule.<locals>.func at 0x7f2936c24680>, 'policy_kwargs': {'net_arch': {'pi': [512, 512], 'vf': [512, 51
+2]}, 'normalize_images': True, 'optimizer_class': <class 'stable_baselines3.common.sb2_compat.rmsprop_tf_like.RMSpropTFLike'>, 'optimizer_kwargs': 
+{'eps': 1e-05}}, 'verbose': 1, 'n_steps': 7, 'normalize_advantage': True, 'gamma': 0.99, 'gae_lambda': 0.96, 'ent_coef': 0.01, 'vf_coef': 0.3, 'max
+_grad_norm': 0.25, 'tensorboard_log': './tblogs'}                                                                                                  
+Seeds used:                                                                                                                                        
+Model: 1234                                                                                                                                        
+Env: 1234                                                                                                                                          
+Logging to ./tblogs/a2c_cnn_trial90_3    
+
 - trial 98, 15.86
     - lr = 7e-5
     - gamma = 0.99

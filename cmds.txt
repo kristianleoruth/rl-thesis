@@ -12,6 +12,8 @@ python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 32 --n_trials 100 --c
 a2c:
 python tune.py --algo a2c --env ALE/Asteroids-v5 --n_envs 16 --n_trials 100 --cnn --learn_ts 1000000 --prune_after 50000 --study_name a2c_cnn_1 --store_dir hyperparam_studies/a2c --seed 1234
 
+python tune.py --algo a2c --env ALE/Asteroids-v5 --n_envs 48 --n_trials 100 --cnn --learn_ts 1000000 --prune_after 50000 --study_name a2c_cnn_scaled --store_dir hyperparam_studies/a2c --seed 1234
+
 trpo:
 python tune.py --algo trpo --env ALE/Asteroids-v5 --n_envs 4 --n_trials 100 --cnn --learn_ts 600000 --prune_after 50000 --study_name trpo_cnn --store_dir hyperparam_studies/trpo --seed 1234
 
