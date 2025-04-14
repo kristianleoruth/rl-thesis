@@ -73,3 +73,12 @@ python train.py --algo a2c --fc1 512 --fc2 512 --lr 1e-4 --gamma 0.98 --gae 0.95
     - max_grad_norm = 0.25
 
 python train.py --algo a2c --fc1 512 --fc2 512 --lr 5e-5 --gamma 0.99 --gae 0.95 --vfcoef 0.2 --entcoef 0.02 --n_steps 5 --max_grad_norm 0.25 --logdir ./tblogs --tb_log_name a2c_cnn_trial66 --env_id ALE/Asteroids-v5 --cnn --timesteps 10000000 --save_to ./saved_models/a2c_cnn_trial66
+
+
+
+SCALED STUDY:
+
+python train.py --algo a2c --fc1 512 --fc2 512 --lr --gamma --gae --vfcoef --entcoef --n_steps --max_rad_norm --logdir ./tblogs --tb_log_name a2c_cnn_trial200 --env_id ALE/Asteroids-v5 --cnn --n_envs 32 --timesteps 100000000 --save_to ./saved_models/a2c_cnn_trial200 --seed 1234 --lrcos
+
+Trial 200, value 9.736:
+python train.py --algo a2c --fc1 512 --fc2 512 --lr 1e-4 --gamma 0.98 --gae 0.98 --vfcoef 0.3 --entcoef 0.01 --n_steps 10 --max_grad_norm 0.25 --logdir ./tblogs --tb_log_name a2c_cnn_trial200 --n_envs 32 --env_id ALE/Asteroids-v5 --cnn --timesteps 100000000 --save_to ./saved_models/a2c_cnn_trial200 --lrcos --seed 1234
