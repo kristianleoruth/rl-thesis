@@ -214,7 +214,7 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
         trial,
         eval_env,
         prune_after=kwargs["prune_after"],
-        eval_freq=50_000, n_eval_episodes=5, verbose=0,
+        eval_freq=50_000, n_eval_episodes=15, verbose=0,
         n_envs=n_envs
     )
     try:
