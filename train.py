@@ -3,7 +3,15 @@ import argparse
 import warnings
 from stable_baselines3.common.callbacks import BaseCallback
 import os
+import torch
+from torch.distributions import Categorical as TorchCategorical
 
+class FastCategorical(TorchCategorical):
+    def __init__(self, *args, **kwargs):
+        kwargs['validate_args'] = False
+        super().__init__(*args, **kwargs)
+
+torch.distributions.Categorical = FastCategorical
 
 class EvalAndSaveCallback(BaseCallback):
     def __init__(self, check_freq=150_000, name="tmp", save_dir="./saved_models", verbose: int = 1,
@@ -75,13 +83,13 @@ if __name__ == "__main__":
                                           args.n_envs,
                                           args.seed,
                                           n_stack,
-                                          clip_reward=False)
+                                          clip_reward=True)
     else:
         env, env_seed = model.get_mlp_env(args.env_id,
                                           args.n_envs,
                                           args.seed,
                                           n_stack,
-                                          clip_reward=False)
+                                          clip_reward=True)
 
     mdl, mdl_seed = model.get_model(args, env, args.seed)
 

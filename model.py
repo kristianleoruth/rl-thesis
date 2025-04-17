@@ -178,20 +178,19 @@ def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
         seed = random.randint(0, 0xefffffff)
     if disable_vec_env:
         env = get_callable_env(env_id, seed=seed,
-                               wrap_atari=wrap_atari, atari_frame_skip=1)()
+                               wrap_atari=wrap_atari, atari_frame_skip=4)()
         if n_stack > 1:
             env = gym.wrappers.FrameStackObservation(env, stack_size=n_stack)
         return env, seed
 
     env_fns = [get_callable_env(env_id, seed=seed+i,
                                 wrap_atari=wrap_atari, clip_reward=clip_reward,
-                                atari_frame_skip=2)
+                                atari_frame_skip=4)
                for i in range(n_envs)]
     env = SubprocVecEnv(env_fns)
     # env = VecNormalize(env, norm_obs=norm_obs, norm_reward=norm_reward)
     if n_stack > 1:
         env = VecFrameStack(env, n_stack=n_stack)
-    print("Obs shape:", env.observation_space.shape)
     return env, seed
 
 

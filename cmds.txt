@@ -1,7 +1,15 @@
+optuna-dashboard sqlite:///hyperparam_studies/ppo_2.db --host 0.0.0.0 --port 8080 --path-prefix /user/krirut/vscode/proxy/8080/
+
 python -u tune.py --algo ppo --env_id ALE/Asteroids-v5 --n_envs 2 --kl --learn_ts 1500000 --seed 1234 --cnn --prune_after 500_000 2>&1 | tee trials.log
 
 ppo:
 python tune.py --algo ppo --env_id ALE/Asteroids-v5 --n_envs 24 --learn_ts 1000000 --seed 1234 --cnn --prune_after 300_000 --store_dir hyperparam_studies/ppo --name clip_cnn
+
+python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 150 --cnn --learn_ts 1000000 --study_name ppo_cnn_clip --store_dir hyperparam_studies/ppo --n_envs 24 --prune_after 50000 --seed 5678
+
+python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 200 --cnn --learn_ts 1000000 --study_name ppo_cnn_clip_seed5678 --store_dir hyperparam_studies/ppo --n_envs 16 --prune_after 50000 --seed 5678
+
+python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 100 --cnn --learn_ts 1000000 --study_name ppo_cnn_clip_seed5678 --store_dir hyperparam_studies/ppo --n_envs 8 --prune_after 50000 --seed 5678
 
 rppo:
 python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 8 --n_trials 100 --cnn --learn_ts 500000 --study_name rppo_clip_cnn_1 --store_dir hyperparam_studies/rppo --seed 1234 --prune_after 50000

@@ -4,7 +4,19 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import BaseCallback
 import argparse
 import gc
+import cProfile
+import pstats
+import io
+import torch
+from torch.distributions import Categorical as TorchCategorical
+import traceback
 
+class FastCategorical(TorchCategorical):
+    def __init__(self, *args, **kwargs):
+        kwargs['validate_args'] = False
+        super().__init__(*args, **kwargs)
+
+torch.distributions.Categorical = FastCategorical
 
 class TrialEvalCallback(BaseCallback):
     def __init__(self, trial, eval_env, prune_after=100_000, eval_freq=15000,
@@ -49,27 +61,47 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
         
     match algo:
         case "ppo":
-            lr = trial.suggest_float("lr", 5e-5 if cnn else 5e-4, 3e-4 if cnn else 3e-3,
-                                 step=5e-5 if cnn else 5e-4)
-            gae_lambda = trial.suggest_float("gae_lambda", 0.93, 0.99, step=0.01)
-            gamma = trial.suggest_float("gamma", 0.95, 0.99, step=0.01)
-            vf_coef = trial.suggest_float("vf_coef", 0.2, 0.7, step=0.1)
-            ent_coef = trial.suggest_float("ent_coef", 0.005, 0.02, step=0.005)
-            n_steps = trial.suggest_categorical("n_steps", [1024, 2048, 4096])
+            # lr = trial.suggest_float("lr", 5e-5 if cnn else 5e-4, 3e-4 if cnn else 3e-3,
+            #                      step=5e-5 if cnn else 5e-4)
+            # gae_lambda = trial.suggest_float("gae_lambda", 0.93, 0.99, step=0.01)
+            # gamma = trial.suggest_float("gamma", 0.95, 0.99, step=0.01)
+            # vf_coef = trial.suggest_float("vf_coef", 0.2, 0.7, step=0.1)
+            # ent_coef = trial.suggest_float("ent_coef", 0.005, 0.02, step=0.005)
+            # n_steps = trial.suggest_categorical("n_steps", [1024, 2048, 4096])
+            # batch_size = trial.suggest_categorical("batch_size",
+            #                                        [512, 1024, 2048, 4096])
+            # if batch_size > n_steps * n_envs:
+            #     raise optuna.exceptions.TrialPruned()
+            # n_epochs = trial.suggest_int("n_epochs", 5, 25, step=5)
+            lr = trial.suggest_categorical(
+                "lr",
+                [5e-5, 7e-5, 1e-4] if cnn
+                else [1e-4, 5e-4, 1e-3])
+            gamma = trial.suggest_categorical("gamma", [0.99, 0.995])
+            gae_lambda = trial.suggest_categorical("gae_lambda", [0.95, 0.97])
+            vf_coef = trial.suggest_categorical("vf_coef", [0.25, 0.5, 0.75])
+            ent_coef = trial.suggest_categorical("ent_coef", [0.0, 0.01, 0.02])
+            n_steps = trial.suggest_categorical("n_steps", [1024, 2048])
             batch_size = trial.suggest_categorical("batch_size",
-                                                   [512, 1024, 2048, 4096])
+                                                   [1024, 2048])
             if batch_size > n_steps * n_envs:
                 raise optuna.exceptions.TrialPruned()
-            n_epochs = trial.suggest_int("n_epochs", 5, 25, step=5)
+            n_epochs = trial.suggest_categorical("n_epochs", [5, 15])
             cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma}"
             cmd += f" --vfcoef {vf_coef} --entcoef {ent_coef} --n_steps {n_steps}"
             cmd += f" --batch_size {batch_size} --n_epochs {n_epochs}"
             if "kl" in kwargs.keys() and kwargs["kl"]:
-                kl_target = trial.suggest_float("kl_target", 0.01, 0.1, step=0.01)
+                kl_target = trial.suggest_categorical("kl_target", [0.01, 0.02, 0.03])
                 cmd += f" --kl --kltarg {kl_target}"
             else:
-                clip_range = trial.suggest_float("clip_range", 0.05, 0.35, step=0.05)
+                clip_range = trial.suggest_categorical("clip_range", [0.1, 0.2, 0.3])
                 cmd += f" --clip {clip_range}"
+            trial.set_user_attr("cfg", {
+                "gamma": gamma,
+                "gae_lambda": gae_lambda,
+                "n_steps": n_steps,
+                "batch_size": batch_size,
+            })
         case "rppo":
             lr = trial.suggest_categorical(
                 "lr",
@@ -140,6 +172,10 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma} --n_critic_updates {n_critic_updates}"
             cmd += f" --batch_size {batch_size} --n_steps {n_steps} --kltarg {kl_target}"
             cmd += f" --cg_max {cg_max_steps} --cg_damp {cg_damping} --ls_max_iter {line_search_max_iter}"
+
+    trial.set_user_attr("info", {
+        "cmd_str": cmd,
+    })
     return cmd
 
 
@@ -161,16 +197,16 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
     env = None
     eval_env = None
     if "cnn" in kwargs.keys() and kwargs["cnn"]:
-        env, _ = model.get_cnn_env(env_id, n_envs, seed, clip_reward=False)
-        eval_env, _ = model.get_cnn_env(env_id, 1, seed, clip_reward=False)
+        env, _ = model.get_cnn_env(env_id, n_envs, seed, clip_reward=True)
+        eval_env, _ = model.get_cnn_env(env_id, 1, seed, clip_reward=True)
     else:
-        env, _ = model.get_mlp_env(env_id, n_envs, seed, clip_reward=False)
-        eval_env, _ = model.get_mlp_env(env_id, 1, seed, clip_reward=False)
+        env, _ = model.get_mlp_env(env_id, n_envs, seed, clip_reward=True)
+        eval_env, _ = model.get_mlp_env(env_id, 1, seed, clip_reward=True)
 
     if "learn_ts" not in kwargs.keys():
-        kwargs["learn_ts"] = 500_000
+        kwargs["learn_ts"] = 1_000_000
     if "prune_after" not in kwargs.keys():
-        kwargs["prune_after"] = kwargs["learn_ts"]
+        kwargs["prune_after"] = int(kwargs["learn_ts"] / 10)
 
     mdl, _ = model.get_model(model_str, env, seed)
 
@@ -178,7 +214,7 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
         trial,
         eval_env,
         prune_after=kwargs["prune_after"],
-        eval_freq=50_000, n_eval_episodes=25, verbose=1,
+        eval_freq=50_000, n_eval_episodes=5, verbose=0,
         n_envs=n_envs
     )
     try:
@@ -189,7 +225,7 @@ def objective(trial: optuna.Trial, algo: str, env_id: str,
         trial.set_user_attr("fail_reason", str(e))
         raise
 
-    mean_ret, std_ret = evaluate_policy(mdl, eval_env, n_eval_episodes=50,
+    mean_ret, std_ret = evaluate_policy(mdl, eval_env, n_eval_episodes=150,
                                         deterministic=False)
     print(f"\n[ObjectiveEvaluation] Mean reward: {mean_ret} | Std reward: {std_ret}\n")
     del mdl, eval_env, env
@@ -217,6 +253,13 @@ def opt_hyperparams(algo: str, env_id: str, n_envs: int = 1, seed: int = None,
                                 load_if_exists=True, study_name=study_name,
                                 pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=2),
                                 sampler=optuna.samplers.TPESampler(multivariate=True, seed=seed))
+    study.set_user_attr("cfg", {
+        "study_name": study_name,
+        "algo": algo,
+        "seed": seed,
+        "n_envs": n_envs,
+        "n_trials": n_trials,
+    })
     study.optimize(lambda trial: objective(trial, algo, env_id, n_envs, seed, **kwargs),
                    n_trials=n_trials)
     return study
@@ -241,8 +284,19 @@ if __name__ == "__main__":
     parser.add_argument("--store_dir", "--dir", type=str, default="hyperparam_studies/",
                         help="(Relative path, do not use ./) directory to store study db, must end with /")
     parser.add_argument("--seed", type=int, default=1, help="Seed (passed to model creator, env creator)")
-    parser.add_argument("--prune_after", type=int, default=500_000,
+    parser.add_argument("--prune_after", type=int, default=50_000,
                         help="Start checking pruning after N steps")
     args = parser.parse_args()
-    opt_hyperparams(args.algo.lower(), args.env_id, args.n_envs, args.seed, args.study_name, args.store_dir,
-                    args.n_trials, cnn=args.cnn, kl=args.kl, learn_ts=args.learn_ts)
+    prf = cProfile.Profile()
+    try:
+        prf.enable()
+        opt_hyperparams(args.algo.lower(), args.env_id, args.n_envs, args.seed, args.study_name, args.store_dir,
+                        args.n_trials, cnn=args.cnn, kl=args.kl, learn_ts=args.learn_ts)
+    except KeyboardInterrupt:
+        prf.disable()
+        s = io.StringIO()
+        stat = pstats.Stats(prf, stream=s).sort_stats("cumtime")
+        stat.print_stats(20)
+        print(s.getvalue())
+        s.close()
+        del s
