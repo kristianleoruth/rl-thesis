@@ -113,24 +113,24 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             gae_lambda = 0.95
             # gae_lambda = trial.suggest_float("gae_lambda", 0.95, 0.97, step=0.01)
             # gamma = trial.suggest_float("gamma", 0.97, 0.99, step=0.01)
-            vf_coef = trial.suggest_float("vf_coef", 0.2, 0.7, step=0.1)
-            ent_coef = trial.suggest_float("ent_coef", 0.005, 0.02, step=0.005)
+            vf_coef = trial.suggest_categorical("vf_coef", [0.25, 0.5, 0.75])
+            ent_coef = trial.suggest_categorical("ent_coef", [0.0, 0.01, 0.02])
             n_steps = trial.suggest_categorical("n_steps", [256, 512])
             batch_size = trial.suggest_categorical("batch_size", [256, 512, 1024])
             if batch_size > n_envs * n_steps:
                 raise optuna.exceptions.TrialPruned()
 
-            n_epochs = trial.suggest_int("n_epochs", 3, 6, step=1)
+            n_epochs = trial.suggest_categorical("n_epochs", [4, 6])
 
             cmd += f" --lr {lr} --gae {gae_lambda} --gamma {gamma}"
             cmd += f" --vfcoef {vf_coef} --entcoef {ent_coef} --n_steps {n_steps}"
             cmd += f" --batch_size {batch_size} --n_epochs {n_epochs}"
 
             if "kl" in kwargs.keys() and kwargs["kl"]:
-                kl_target = trial.suggest_float("kl_target", 0.01, 0.1, step=0.01)
+                kl_target = trial.suggest_categorical("kl_target", [0.01, 0.02, 0.03])
                 cmd += f" --kl --kltarg {kl_target}"
             else:
-                clip_range = trial.suggest_float("clip_range", 0.1, 0.25, step=0.05)
+                clip_range = trial.suggest_categorical("clip_range", [0.1, 0.2, 0.3])
                 cmd += f" --clip {clip_range}"
         case "a2c":
             lr = trial.suggest_categorical(
@@ -287,16 +287,23 @@ if __name__ == "__main__":
     parser.add_argument("--prune_after", type=int, default=50_000,
                         help="Start checking pruning after N steps")
     args = parser.parse_args()
-    prf = cProfile.Profile()
-    try:
-        prf.enable()
+
+    ENABLE_PROFILING = False
+
+    if ENABLE_PROFILING:
+        prf = cProfile.Profile()
+        try:
+            prf.enable()
+            opt_hyperparams(args.algo.lower(), args.env_id, args.n_envs, args.seed, args.study_name, args.store_dir,
+                            args.n_trials, cnn=args.cnn, kl=args.kl, learn_ts=args.learn_ts)
+        except KeyboardInterrupt:
+            prf.disable()
+            s = io.StringIO()
+            stat = pstats.Stats(prf, stream=s).sort_stats("cumtime")
+            stat.print_stats(20)
+            print(s.getvalue())
+            s.close()
+            del s
+    else:
         opt_hyperparams(args.algo.lower(), args.env_id, args.n_envs, args.seed, args.study_name, args.store_dir,
                         args.n_trials, cnn=args.cnn, kl=args.kl, learn_ts=args.learn_ts)
-    except KeyboardInterrupt:
-        prf.disable()
-        s = io.StringIO()
-        stat = pstats.Stats(prf, stream=s).sort_stats("cumtime")
-        stat.print_stats(20)
-        print(s.getvalue())
-        s.close()
-        del s
