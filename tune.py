@@ -151,7 +151,7 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             lr = trial.suggest_categorical(
                 "lr",
                 [5e-5, 7e-5, 1e-4] if cnn
-                else [3e-4, 7e-4, 1e-3, 3e-3]
+                else [3e-4, 7e-4, 1e-3]
             )
             kl_target = trial.suggest_categorical("kl_target", [0.01, 0.02, 0.03])
 
