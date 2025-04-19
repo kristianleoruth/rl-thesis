@@ -169,6 +169,26 @@ class ScaledReward(gym.Wrapper):
         return obs, reward, terminated, truncated, info
 
 
+class SkipNFrames(gym.Wrapper):
+    """
+    Repeat action for N frames, return last observation and summed reward
+    """
+    def __init__(self, env, limit: int):
+        super().__init__(env)
+        self.limit = limit
+    
+    def step(self, action):
+        tot_reward = 0
+        for _ in range(self.limit - 1):
+            obs, reward, terminated, truncated, info = self.env.step(action)
+            tot_reward += reward
+            if terminated or truncated:
+                return obs, tot_reward, terminated, truncated, info
+        obs, reward, terminated, truncated, info = self.env.step(action)
+        tot_reward += reward
+        return obs, tot_reward, terminated, truncated, info
+
+
 def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
                      atari_frame_skip=4, clip_reward=True):
     def _func():
@@ -184,10 +204,10 @@ def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
             if clip_reward:
                 from gymnasium.wrappers import ClipReward
                 env = ClipReward(env, -1.0, 1.0)
+            env = SkipNFrames(env, atari_frame_skip)
+            
         from stable_baselines3.common.monitor import Monitor
         # env = gym.wrappers.RecordEpisodeStatistics(env)
-        if not clip_reward:
-            env = ScaledReward(env)
         env = FixedSeedEnv(env, seed)
         env = Monitor(env)
         return env

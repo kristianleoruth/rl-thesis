@@ -1,7 +1,7 @@
 import model
 import argparse
 import warnings
-from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
 import os
 import torch
 from torch.distributions import Categorical as TorchCategorical
@@ -14,7 +14,7 @@ class FastCategorical(TorchCategorical):
 torch.distributions.Categorical = FastCategorical
 
 class EvalAndSaveCallback(BaseCallback):
-    def __init__(self, check_freq=150_000, name="tmp", save_dir="./saved_models", verbose: int = 1,
+    def __init__(self, check_freq=20_000, name="tmp", save_dir="./saved_models", verbose: int=1,
                  start_saving_after_ts=0):
         super().__init__(verbose)
         self.check_freq = check_freq
@@ -84,19 +84,43 @@ if __name__ == "__main__":
                                           args.seed,
                                           n_stack,
                                           clip_reward=True)
+        eval_env, env_seed = model.get_cnn_env(
+            args.env_id,
+            args.n_envs,
+            args.seed,
+            n_stack,
+            clip_reward=False
+        )
     else:
-        env, env_seed = model.get_mlp_env(args.env_id,
-                                          args.n_envs,
-                                          args.seed,
-                                          n_stack,
-                                          clip_reward=True)
+        env, env_seed = model.get_mlp_env(
+            args.env_id,
+            args.n_envs,
+            args.seed,
+            n_stack,
+            clip_reward=True
+        )
+        eval_env, env_seed = model.get_mlp_env(
+            args.env_id,
+            args.n_envs,
+            args.seed,
+            n_stack,
+            clip_reward=False
+        )
 
     mdl, mdl_seed = model.get_model(args, env, args.seed)
 
     print(f"Seeds used:\nModel: {mdl_seed}\nEnv: {env_seed}")
 
     try:
-        callback = EvalAndSaveCallback(name=args.tb_log_name or "unnamed", save_dir=os.path.dirname(args.save_to))
+        # callback = EvalAndSaveCallback(name=args.tb_log_name or "unnamed", save_dir=os.path.dirname(args.save_to))
+        callback = EvalCallback(
+            eval_env, 
+            best_model_save_path=f"./saved_models/tmp/", 
+            eval_freq=50000,
+            deterministic=True, 
+            render=False,
+            verbose=1,
+        )
         mdl.learn(args.timesteps, tb_log_name=args.tb_log_name, callback=callback)
         mdl.save(args.save_to)
         print(f"Model saved {args.save_to}\n\n")

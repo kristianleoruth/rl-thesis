@@ -13,6 +13,7 @@ python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 100 --cnn --learn_ts
 
 python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 100 --cnn --learn_ts 1000000 --study_name ppo_cnn_clip_seed5678 --store_dir hyperparam_studies/ppo --n_envs 24 --prune_after 50000 --seed 5678
 
+train.py --algo ppo --n_steps 1024 --n_envs 4 --batch_size 1024 --entcoef 0.01 --n_epochs 10 --logdir ./tblogs --tb_log_name ppo_clip_mlp_test --env_id ALE/Asteroids-ram-v5 --save_to ./saved_models/ppo_clip_mlp_test --seed 1234 --timesteps 50000000
 rppo:
 python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 8 --n_trials 100 --cnn --learn_ts 500000 --study_name rppo_clip_cnn_1 --store_dir hyperparam_studies/rppo --seed 1234 --prune_after 50000
 
