@@ -54,7 +54,7 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             for ppo, can pass kl=True to tune kl target
     """
     cmd = f"--algo {algo} --fc1 512 --fc2 512"
-
+    cnn = False
     if "cnn" in kwargs.keys() and kwargs["cnn"]:
         cnn = True
         cmd += " --cnn"
@@ -157,7 +157,7 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
 
             gamma = 0.99
             gae_lambda = 0.95
-            n_steps = 2048
+            n_steps = 1024
             batch_size = n_envs * n_steps
             cg_max_steps = trial.suggest_categorical("cg_max_steps", [10, 15, 20])
             cg_damping = trial.suggest_categorical("cg_damping", [0.05, 0.1, 0.2])
