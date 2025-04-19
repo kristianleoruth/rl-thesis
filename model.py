@@ -4,9 +4,14 @@ import stable_baselines3 as sb3
 import sb3_contrib as sb3c
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecFrameStack
 from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 import ale_py
 import random
 import torch
+import torch.nn as nn
+import torchvision.models as models
+import torchvision.transforms as T
+import torch.nn.functional as F
 import multiprocessing as mp
 import os
 from typing import List, Optional, Union
@@ -16,6 +21,37 @@ os.environ["ALE_DISABLE_LOG"] = "1"
 ASTEROIDS_ENVID = "ALE/Asteroids-v5"
 ASTEROIDS_RAM_ENVID = "ALE/Asteroids-ram-v5"
 # gym.register(ASTEROIDS_ENVID, )
+USE_CUSTOM_CNN = False
+
+class ResNetFeatureExtractor(BaseFeaturesExtractor):
+    """
+    Pretrained ResNet-18 feature extractor (512 dim) using torchvision.models.ResNet18_Weights.DEFAULT
+    """
+    def __init__(self, observation_space: gym.spaces.Box):
+        super().__init__(observation_space=observation_space, features_dim=512)
+        resnet = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        modules = list(resnet.children())[:-1]
+        self.resnet = nn.Sequential(*modules)
+        self.normalize = T.Normalize(
+            mean=models.ResNet18_Weights.DEFAULT.meta["mean"],
+            std=models.ResNet18_Weights.DEFAULT.meta["std"]
+        )
+
+        for param in self.resnet.parameters():
+            param.requires_grad = False
+    
+    def forward(self, observations: torch.Tensor) -> torch.Tensor:
+        x = observations.mean(dim=1)
+
+        # Repeat to 3 channels: (B, 3, 84, 84)
+        x = x.unsqueeze(1).repeat(1, 3, 1, 1)
+
+        x = F.interpolate(x, size=(224, 224), mode='bilinear', align_corners=False)
+
+        x = torch.clamp(x, 0.0, 1.0)
+        x = self.normalize(x)
+        x = self.resnet(x)
+        return x.view(x.size(0), -1)
 
 
 def cosine_schedule(initial_value, min_lr=1e-5):
@@ -326,6 +362,9 @@ def _get_ppo(args, env, seed):
         normalize_images=args.cnn,
     )
 
+    if args.cnn and USE_CUSTOM_CNN:
+        policy_kwargs["features_extractor_class"] = ResNetFeatureExtractor
+
     mdl_dict = dict(
         policy=_get_policy(args),
         device=_get_dev(args),
@@ -359,6 +398,9 @@ def _get_trpo(args, env, seed):
         net_arch=[args.fc1, args.fc2],
         normalize_images=args.cnn,
     )
+
+    if args.cnn and USE_CUSTOM_CNN:
+        policy_kwargs["features_extractor_class"] = ResNetFeatureExtractor
 
     mdl_dict = dict(
         policy=_get_policy(args),
@@ -404,6 +446,9 @@ def _get_a2c(args, env, seed):
         optimizer_class=RMSpropTFLike,
         optimizer_kwargs=dict(eps=1e-5)
     )
+
+    if args.cnn and USE_CUSTOM_CNN:
+        policy_kwargs["features_extractor_class"] = ResNetFeatureExtractor
 
     mdl_dict = dict(
         policy=_get_policy(args),
