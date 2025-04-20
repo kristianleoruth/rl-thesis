@@ -82,8 +82,10 @@ def parse_mdl_args(argstr=None, return_parser=False, add_help=True):
                         help="Size of second fully connected layer")
     parser.add_argument("--cnn", action="store_true", required=False,
                         help="Use convolutional (Cnn) policy")
+    parser.add_argument("--resnet", action="store_true", required=False,
+                        help="Use pretrained feature extractor (ResNet-18)")
     parser.add_argument("--lrsched", action="store_true", required=False,
-                        help="Use scheduled learning rate (linear")
+                        help="Use scheduled learning rate (linear)")
     parser.add_argument("--lrcos", action="store_true", required=False,
                         help="Use scheduled learning rate (cosine)")
     parser.add_argument("--lr", type=float, default=3e-4, required=False,
@@ -382,7 +384,7 @@ def _get_ppo(args, env, seed):
         normalize_images=args.cnn,
     )
 
-    if args.cnn and USE_CUSTOM_CNN:
+    if args.cnn and args.resnet:
         policy_kwargs["features_extractor_class"] = ResNetFeatureExtractor
 
     mdl_dict = dict(
@@ -419,7 +421,7 @@ def _get_trpo(args, env, seed):
         normalize_images=args.cnn,
     )
 
-    if args.cnn and USE_CUSTOM_CNN:
+    if args.cnn and args.resnet:
         policy_kwargs["features_extractor_class"] = ResNetFeatureExtractor
 
     mdl_dict = dict(
@@ -467,7 +469,7 @@ def _get_a2c(args, env, seed):
         optimizer_kwargs=dict(eps=1e-5)
     )
 
-    if args.cnn and USE_CUSTOM_CNN:
+    if args.cnn and args.resnet:
         policy_kwargs["features_extractor_class"] = ResNetFeatureExtractor
 
     mdl_dict = dict(

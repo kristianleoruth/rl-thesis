@@ -58,6 +58,8 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
     if "cnn" in kwargs.keys() and kwargs["cnn"]:
         cnn = True
         cmd += " --cnn"
+        if "resnet" in kwargs.keys() and kwargs["resnet"]:
+            cmd += " --resnet"
         
     match algo:
         case "ppo":
@@ -248,6 +250,7 @@ def opt_hyperparams(algo: str, env_id: str, n_envs: int = 1, seed: int = None,
             for ppo, can pass kl=True to tune kl target
             learn_ts=int, learning timesteps
             prune_after=int, start pruning after N steps
+            resnet=False, custom features extractor ResNet-18
     """
     study = optuna.create_study(direction="maximize", storage=f"sqlite:///{store_dir}.db",
                                 load_if_exists=True, study_name=study_name,
@@ -286,6 +289,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1, help="Seed (passed to model creator, env creator)")
     parser.add_argument("--prune_after", type=int, default=50_000,
                         help="Start checking pruning after N steps")
+    parser.add_argument("--resnet", action="store_true", help="Use custom feature extractor ResNet-18")
     args = parser.parse_args()
 
     ENABLE_PROFILING = False
@@ -295,7 +299,7 @@ if __name__ == "__main__":
         try:
             prf.enable()
             opt_hyperparams(args.algo.lower(), args.env_id, args.n_envs, args.seed, args.study_name, args.store_dir,
-                            args.n_trials, cnn=args.cnn, kl=args.kl, learn_ts=args.learn_ts)
+                            args.n_trials, cnn=args.cnn, kl=args.kl, learn_ts=args.learn_ts, resnet=args.resnet)
         except KeyboardInterrupt:
             prf.disable()
             s = io.StringIO()
