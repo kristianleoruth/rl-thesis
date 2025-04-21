@@ -41,6 +41,7 @@ class ResNetFeatureExtractor(BaseFeaturesExtractor):
             param.requires_grad = False
     
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
+        # observation is (3, H, W)
         x = observations.mean(dim=1)
 
         # Repeat to 3 channels: (B, 3, 84, 84)
