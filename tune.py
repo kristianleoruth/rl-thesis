@@ -117,8 +117,8 @@ def build_argstr(trial: optuna.Trial, n_envs: int, algo: str, **kwargs):
             # gamma = trial.suggest_float("gamma", 0.97, 0.99, step=0.01)
             vf_coef = trial.suggest_categorical("vf_coef", [0.25, 0.5, 0.75])
             ent_coef = trial.suggest_categorical("ent_coef", [0.0, 0.01, 0.02])
-            n_steps = trial.suggest_categorical("n_steps", [256, 512])
-            batch_size = trial.suggest_categorical("batch_size", [256, 512, 1024])
+            n_steps = trial.suggest_categorical("n_steps", [1024, 2048])
+            batch_size = trial.suggest_categorical("batch_size", [512, 1024])
             if batch_size > n_envs * n_steps:
                 raise optuna.exceptions.TrialPruned()
 
