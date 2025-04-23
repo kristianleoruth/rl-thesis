@@ -15,7 +15,7 @@ python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 100 --cnn --learn_ts
 
 train.py --algo ppo --n_steps 1024 --n_envs 4 --batch_size 1024 --entcoef 0.01 --n_epochs 10 --logdir ./tblogs --tb_log_name ppo_clip_mlp_test --env_id ALE/Asteroids-ram-v5 --save_to ./saved_models/ppo_clip_mlp_test --seed 1234 --timesteps 50000000
 
-python train.py --algo ppo --fc1 512 --fc2 512 --lr 0.0001 --gae 0.97 --gamma 0.995 --vfcoef 0.25 --entcoef 0.0 --n_steps 1024 --batch_size 1024 --n_epochs 15 --clip 0.2 --logdir ./tblogs --tb_log_name ppo_mlp_clip_1234 --seed 1234 --timesteps 50000000 --env_id ALE/Asteroids-ram-v5 --save_to ./saved_models/ppo_mlp_clip_1234
+python train.py --algo ppo --fc1 512 --fc2 512 --lr 0.0001 --gae 0.97 --gamma 0.995 --vfcoef 0.25 --entcoef 0.0 --n_steps 1024 --batch_size 1024 --n_epochs 15 --clip 0.2 --logdir ./tblogs --tb_log_name ppo_mlp_clip_1234 --n_envs 4 --seed 1234 --timesteps 50000000 --env_id ALE/Asteroids-ram-v5 --save_to ./saved_models/ppo_mlp_clip_1234 --lrcos
 rppo:
 python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 8 --n_trials 100 --cnn --learn_ts 500000 --study_name rppo_clip_cnn_1 --store_dir hyperparam_studies/rppo --seed 1234 --prune_after 50000
 
