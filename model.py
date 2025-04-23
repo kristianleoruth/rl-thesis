@@ -348,6 +348,17 @@ def get_model(args, env, seed=None):
     args.algo = args.algo.lower()
     if seed is None:
         seed = random.randint(0, 0xefffffff)
+
+    if os.path.exists(args.save_to + ".zip"):
+        print(f"Model file found; Loading model at {args.save_to}")
+        match args.algo:
+            case "ppo":
+                return sb3.PPO.load(args.save_to)
+            case "trpo":
+                return sb3c.TRPO.load(args.save_to)
+            case "rppo":
+                return sb3c.RecurrentPPO.load(args.save_to)
+
     mdl = None
     _dict = None
     match args.algo:

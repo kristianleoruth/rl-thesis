@@ -10,6 +10,8 @@ import io
 import torch
 from torch.distributions import Categorical as TorchCategorical
 import traceback
+import time
+import random
 
 class FastCategorical(TorchCategorical):
     def __init__(self, *args, **kwargs):
@@ -38,8 +40,12 @@ class TrialEvalCallback(BaseCallback):
         mean_reward, _ = evaluate_policy(
             self.model, self.eval_env, n_eval_episodes=self.n_eval_episodes, return_episode_rewards=False
         )
-
-        self.trial.report(mean_reward, self.step)
+        rnd = random.Random()
+        for _ in range(10):
+            try:
+                self.trial.report(mean_reward, self.step)
+            except optuna.exceptions.StorageInternalError:
+                time.sleep(rnd.random() * 0.2)
 
         if self.trial.should_prune() and self.prune_after <= self.step:
             raise optuna.exceptions.TrialPruned()
