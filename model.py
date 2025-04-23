@@ -349,7 +349,7 @@ def get_model(args, env, seed=None):
     if seed is None:
         seed = random.randint(0, 0xefffffff)
 
-    if args.save_to is not None and os.path.exists(args.save_to + ".zip"):
+    if hasattr(args, "save_to") and os.path.exists(args.save_to + ".zip"):
         print(f"Model file found; Loading model at {args.save_to}")
         match args.algo:
             case "ppo":
