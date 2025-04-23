@@ -9,7 +9,7 @@ python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 150 --cnn --learn_ts
 
 python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 200 --cnn --learn_ts 1000000 --study_name ppo_cnn_clip_seed5678 --store_dir hyperparam_studies/ppo --n_envs 16 --prune_after 50000 --seed 5678
 
-python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 100 --cnn --learn_ts 1000000 --study_name ppo_cnn_clip_seed1234 --store_dir hyperparam_studies/ppo --n_envs 24 --prune_after 50000 --seed 1234
+python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 100 --cnn --learn_ts 1000000 --study_name ppo_cnn_clip_1234_fxr --store_dir hyperparam_studies/ppo --n_envs 24 --prune_after 50000 --seed 1234
 
 python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 100 --cnn --learn_ts 1000000 --study_name ppo_cnn_clip_seed5678 --store_dir hyperparam_studies/ppo --n_envs 24 --prune_after 50000 --seed 5678
 
