@@ -44,6 +44,7 @@ class TrialEvalCallback(BaseCallback):
         for _ in range(10):
             try:
                 self.trial.report(mean_reward, self.step)
+                break
             except optuna.exceptions.StorageInternalError:
                 time.sleep(rnd.random() * 0.2)
 
