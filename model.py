@@ -353,11 +353,11 @@ def get_model(args, env, seed=None):
         print(f"Model file found; Loading model at {args.save_to}")
         match args.algo:
             case "ppo":
-                return sb3.PPO.load(args.save_to), seed
+                return sb3.PPO.load(args.save_to, env=env), seed
             case "trpo":
-                return sb3c.TRPO.load(args.save_to), seed
+                return sb3c.TRPO.load(args.save_to, env=env), seed
             case "rppo":
-                return sb3c.RecurrentPPO.load(args.save_to), seed
+                return sb3c.RecurrentPPO.load(args.save_to, env=env), seed
 
     mdl = None
     _dict = None
