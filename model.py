@@ -193,7 +193,7 @@ class SkipNFrames(gym.Wrapper):
 
 
 def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
-                     atari_frame_skip=4, clip_reward=True):
+                     atari_frame_skip=4, clip_reward=True, noop_max=30):
     def _func():
         import gymnasium as gym  # re-import in subprocess
         if wrap_atari:
@@ -201,7 +201,8 @@ def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
             from stable_baselines3.common.atari_wrappers import AtariWrapper
             env = AtariWrapper(env, terminal_on_life_loss=False,
                                frame_skip=atari_frame_skip,
-                               clip_reward=clip_reward)
+                               clip_reward=clip_reward,
+                               noop_max=noop_max)
         else:
             env = gym.make(env_id)
             if clip_reward:
@@ -218,7 +219,8 @@ def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
 
 
 def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
-            wrap_atari=False, disable_vec_env=False, clip_reward=True):
+            wrap_atari=False, disable_vec_env=False, clip_reward=True, frame_skip=4,
+            noop_max=30):
     """
         Get AtariWrapper, VecEnv, (optional) VecFrameStack
             of env_id (if image obs)
@@ -237,14 +239,14 @@ def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
         seed = random.randint(0, 0xefffffff)
     if disable_vec_env:
         env = get_callable_env(env_id, seed=seed,
-                               wrap_atari=wrap_atari, atari_frame_skip=4)()
+                               wrap_atari=wrap_atari, atari_frame_skip=frame_skip)()
         if n_stack > 1:
             env = gym.wrappers.FrameStackObservation(env, stack_size=n_stack)
         return env, seed
 
     env_fns = [get_callable_env(env_id, seed=seed+i,
                                 wrap_atari=wrap_atari, clip_reward=clip_reward,
-                                atari_frame_skip=4)
+                                atari_frame_skip=frame_skip, noop_max=noop_max)
                for i in range(n_envs)]
     env = SubprocVecEnv(env_fns)
     # env = VecNormalize(env, norm_obs=norm_obs, norm_reward=norm_reward)
