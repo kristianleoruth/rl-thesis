@@ -30,6 +30,8 @@ python tune.py --algo a2c --env ALE/Asteroids-v5 --n_envs 48 --n_trials 100 --cn
 trpo:
 python tune.py --algo trpo --env ALE/Asteroids-v5 --n_envs 4 --n_trials 100 --cnn --learn_ts 600000 --prune_after 50000 --study_name trpo_cnn --store_dir hyperparam_studies/trpo --seed 1234
 
+python tune.py --algo trpo --n_envs 4 --n_trials 100 --learn_ts 1000000 --study_name trpo_cnn_1234_fxr --store_dir hyperparam_studies/trpo --cnn --env ALE/Asteroids-v5 --prune_after 50000 --seed 1234
+
 seeds to train:
 1234
 5678
