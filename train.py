@@ -76,8 +76,8 @@ if __name__ == "__main__":
         warnings.warn("logdir is set, but tb_log_name is empty — logs will be written directly to the logdir.\n")
 
     n_stack = 4
-    if args.algo.lower() == "rppo":
-        n_stack = 1
+    # if args.algo.lower() == "rppo":
+    #     n_stack = 1
     if args.cnn:
         env, env_seed = model.get_cnn_env(args.env_id,
                                           args.n_envs,
