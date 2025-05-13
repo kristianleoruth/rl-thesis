@@ -1,0 +1,179 @@
+<!DOCTYPE html><html><head><style>body {
+    padding: 5% 20%;
+    font-family: Tahoma, sans-serif;
+}
+
+
+.columns2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3%;
+}
+.columns3 {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    gap: 3%;
+}
+div, div div, div img, body p  {
+    margin: 3% 0%;
+}
+.firstimg {
+    margin-top: 0;
+}
+
+.code {
+    padding: 0.2% 3%;
+    margin: 3% 0%;
+    border-radius: 5px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: large;
+    line-height:125%;
+    text-align: left;
+}
+
+.code * {
+    text-wrap: wrap;
+}
+
+.theme-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    position: fixed;
+    top: 15px;
+    right: 18%;
+}
+
+.theme-btn img {
+    max-width: 20px;
+    max-height: 20px;
+}
+
+pre.list {
+    font-family: inherit;
+    margin: inherit;
+    unicode-bidi: inherit;
+}
+
+pre.code {
+    padding: 0;
+    margin-top: 0;
+}
+
+body[data-theme="light"] {
+    color: black;
+}
+body[data-theme="light"] .bg2 {
+    background-color: #ddd;
+}
+body[data-theme="dark"] {
+    background-color: #0b192c;
+    color: #fff;
+}
+body[data-theme="dark"] .bg2 {
+    background-color: #1E3E62;
+    color: #bbb;
+}
+
+.img-container-ctr {
+    text-align: center;
+}
+.img-container {
+    text-align: left;
+}
+
+.switch {
+    height: 10px;
+    position: fixed;
+    right: 100px;
+    top: 0px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: #ccc;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+}
+
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 26px;
+}
+
+input:checked+.slider {
+    background-color: #2b2b2b;
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+a.link {
+    color: #80CBC4;
+    /* text-decoration: none; */
+}
+
+a.link:visited {
+    color: #80CBC4;  /* Ensures visited links stay the same */
+}
+
+a.link:active {
+    color: #FBF8EF;
+}
+
+h1 {
+    margin: 1em 0 0.1em;
+}
+
+h2, h3 {
+    margin: 1em 0 0.2em;
+}
+
+span.textcode {
+    font-weight:600;
+    font-size:1.1em;
+    display: inline;
+    font-family: 'Courier New', Courier, monospace;
+}
+.test {
+    color: blueviolet;
+}</style></head><body class='bg1' data-theme='light'x><div id='1746957711017293000' class='bg1 columns1  ' data-theme='light' style='text-align:justify;' ><div id='1746957711017373000' class='bg1 columns1  ' data-theme='light' style='text-align:justify;' ><h1 id='1746957711017380000'>Hyperparameter Optimization and Training of PPO, LSTM-PPO, and TRPO in Atari Asteroids</h1><p class='' id='1746957711017414000'>This research was conducted as part of my degree project for the program Information and Communication Technology at KTH Royal Institute of Technology. The research focuses on the question <strong>how do PPO, LSTM-PPO, and TRPO perform in complex environments with delayed rewards?</strong> The project entailed writing two scripts, <span class='textcode' style='display:inline'>tune.py</span> and <span class='textcode' style='display:inline'>train.py</span>, which allow for hyperparameter optimization and model training, respectively.</p><h2 id='1746957711017420000'>How to use the scripts</h2><p class='' id='1746957711017434000'>The arguments <span class='textcode' style='display:inline'>-h, --help</span> may be used to view the options associated with each file.</p><div class='bg2  code ' data-theme='light' id='1746957711017444000'><pre>% python tune.py -h<br><br>usage: tune.py [-h] --algo ALGO [--env_id ENV_ID] [--n_envs N_ENVS] [--n_trials N_TRIALS] [--cnn] [--kl] [--learn_ts LEARN_TS] [--study_name STUDY_NAME] [--store_dir STORE_DIR] [--seed SEED]<br>               [--prune_after PRUNE_AFTER]<br><br>options:<br>  -h, --help            show this help message and exit<br>  --algo ALGO           Algorithm to tune parameters for<br>  --env_id ENV_ID, --env ENV_ID<br>                        Env id to load<br>  --n_envs N_ENVS       Number of environments to train on<br>  --n_trials N_TRIALS<br>  --cnn                 Use convolutional policy<br>  --kl                  Tune KL target instead of clip range (PPO)<br>  --learn_ts LEARN_TS   Timesteps to learn per trial<br>  --study_name STUDY_NAME, --name STUDY_NAME<br>  --store_dir STORE_DIR, --dir STORE_DIR<br>                        (Relative path, do not use ./) directory to store study db, must end with /<br>  --seed SEED           Seed (passed to model creator, env creator)<br>  --prune_after PRUNE_AFTER<br>                        Start checking pruning after N steps</pre></div><p class='' id='1746957711017451000'>For example, to run a PPO study of 50 trials on Atari Asteroids, with a convolutional policy, and logging to Optuna Dashboard:</p><div class='bg2  code ' data-theme='light' id='1746957711017459000'><pre>python tune.py --algo ppo --env ALE/Asteroids-v5 --n_trials 50 --cnn --study_name ppo_study --store_dir studies/</pre></div></div></div><button class='theme-btn' onclick='switchTheme()'><img src='https://raw.githubusercontent.com/kristianleoruth/wbuild/refs/heads/main/assets/moon.png' alt='Toggle theme'></button><script>const themedEls = document.querySelectorAll('[data-theme]');
+const switchThemeBtnIcon = document.querySelector('button.theme-btn').firstElementChild
+
+function switchTheme() {
+    let themeTo = ""
+    for (el of themedEls) {
+        const cur = el.getAttribute("data-theme");
+        themeTo = cur == "light" ? "dark" : "light"
+        el.setAttribute("data-theme", themeTo)
+    }
+
+    switchThemeBtnIcon.setAttribute("src", themeTo == "dark"? 
+        "https://raw.githubusercontent.com/kristianleoruth/wbuild/refs/heads/main/assets/sun.png"
+         : "https://raw.githubusercontent.com/kristianleoruth/wbuild/refs/heads/main/assets/moon.png")
+}</script></body></html>
