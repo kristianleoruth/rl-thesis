@@ -29,6 +29,8 @@ python tune.py --algo rppo --env ALE/Asteroids-v5 --n_envs 32 --n_trials 100 --c
 
 python train.py --algo rppo --fc1 512 --fc2 512 --cnn --lr 7e-05 --gae 0.95 --gamma 0.99 --vfcoef 0.75 --entcoef 0.0 --n_steps 1024 --batch_size 512 --n_epochs 6 --clip 0.3 --n_envs 32 --logdir ./tblogs --tb_log_name rppo_cnn_1234 --save_to ./saved_models/rppo_cnn_1234_4 --seed 1234 --env ALE/Asteroids-v5 --timesteps 25000000 > rppo_cnn_1234_4.log 2>&1
 
+python train.py --algo rppo --fc1 512 --fc2 512 --cnn --lr 7e-05 --gae 0.95 --gamma 0.99 --vfcoef 0.75 --entcoef 0.0 --n_steps 1024 --batch_size 512 --n_epochs 6 --clip 0.3 --n_envs 32 --timesteps 50000000 --lrcos --logdir ./tblogs --tb_log_name rppo_cnn_4209510580 --seed 4209510580 --save_to ./saved_models/rppo_cnn_4209510580_3 > rppo_cnn_4209510580_3.log 2>&1
+
 a2c:
 python tune.py --algo a2c --env ALE/Asteroids-v5 --n_envs 16 --n_trials 100 --cnn --learn_ts 1000000 --prune_after 50000 --study_name a2c_cnn_1 --store_dir hyperparam_studies/a2c --seed 1234
 
