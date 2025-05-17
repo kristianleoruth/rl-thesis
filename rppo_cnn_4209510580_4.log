@@ -25149,3 +25149,24 @@ Episode length: 225.60 +/- 30.74
 |    policy_gradient_loss | -0.0016     |
 |    value_loss           | 1.54        |
 -----------------------------------------
+-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 238         |
+|    ep_rew_mean          | 32.4        |
+| time/                   |             |
+|    fps                  | 291         |
+|    iterations           | 1182        |
+|    time_elapsed         | 132863      |
+|    total_timesteps      | 38731776    |
+| train/                  |             |
+|    approx_kl            | 0.006910592 |
+|    clip_fraction        | 0.0151      |
+|    clip_range           | 0.3         |
+|    entropy_loss         | -0.0515     |
+|    explained_variance   | 0.835       |
+|    learning_rate        | 1.73e-05    |
+|    loss                 | 1.24        |
+|    n_updates            | 7086        |
+|    policy_gradient_loss | -0.00229    |
+|    value_loss           | 1.56        |
+-----------------------------------------
