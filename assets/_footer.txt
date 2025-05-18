@@ -1,0 +1,8 @@
+[section]
+[column]
+[subheader][label=How do PPO, LSTM-PPO, and TRPO perform in Atari Asteroids?]
+This research was part of my degree project for my Information and Communication BSc. Thank you to the gpu1.eecs team for allowing me to train the models with their clusters.
+[column]
+[subheader][label=Extra Information]
+Author: Kristian Ruth (\link{https://github.com/kristianleoruth}{Github}, \link{https://sites.google.com/view/kristian-ruth/home}{Website})
+Last updated: May 18, 2025 18:20
