@@ -5,6 +5,7 @@ from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
 import os
 import torch
 from torch.distributions import Categorical as TorchCategorical
+import signal
 
 class FastCategorical(TorchCategorical):
     def __init__(self, *args, **kwargs):
@@ -49,7 +50,21 @@ class EvalAndSaveCallback(BaseCallback):
         return True
 
 
+def train(mdl, args, callback=None):
+    try:
+        # callback = EvalAndSaveCallback(name=args.tb_log_name or "unnamed", save_dir=os.path.dirname(args.save_to))
+        mdl.learn(args.timesteps - mdl.num_timesetps, tb_log_name=args.tb_log_name, callback=callback)
+        mdl.save(args.save_to)
+        print(f"Model saved {args.save_to}\n\n")
+    except KeyboardInterrupt:
+        key = input("Save model? [y/N]: ")
+        if key.lower() == "y":
+            mdl.save(args.save_to)
+            print(f"Model saved {args.save_to}\n\n")
+        raise
+
 if __name__ == "__main__":
+    cum_timesteps = 0
     mdl_parser = model.parse_mdl_args(return_parser=True, add_help=False)
 
     train_parser = argparse.ArgumentParser(add_help=False)
@@ -69,7 +84,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     env = None
     env_seed = None
-
+    # python train.py --algo rppo --fc1 512 --fc2 512 --lr 0.0005 --gae 0.95 --gamma 0.99 --vfcoef 0.25 --entcoef 0.0 --n_steps 1024 --batch_size 1024 --n_epochs 6 --clip 0.2 --lrcos --timesteps 50000000 --logdir ./tblogs --tb_log_name rppo_mlp_1234 --save_to ./saved_models/rppo_mlp_1234 --seed 1234
     if args.logdir == "" and args.tb_log_name != "":
         warnings.warn("tb_log_name ignored — make sure to pass --logdir as well.\n")
     if args.logdir != "" and args.tb_log_name == "":
@@ -111,22 +126,21 @@ if __name__ == "__main__":
 
     print(f"Seeds used:\nModel: {mdl_seed}\nEnv: {env_seed}")
 
-    try:
-        # callback = EvalAndSaveCallback(name=args.tb_log_name or "unnamed", save_dir=os.path.dirname(args.save_to))
-        callback = EvalCallback(
-            eval_env, 
-            best_model_save_path=f"./saved_models/tmp/", 
-            eval_freq=50000,
-            deterministic=True, 
-            render=False,
-            verbose=1,
-        )
-        mdl.learn(args.timesteps, tb_log_name=args.tb_log_name, callback=callback)
-        mdl.save(args.save_to)
-        print(f"Model saved {args.save_to}\n\n")
-    except KeyboardInterrupt:
-        key = input("Save model? [y/N]: ")
-        if key.lower() == "y":
-            mdl.save(args.save_to)
-            print(f"Model saved {args.save_to}\n\n")
-        raise
+    callback = EvalCallback(
+        eval_env, 
+        best_model_save_path=f"./saved_models/tmp/", 
+        eval_freq=50000,
+        deterministic=True, 
+        render=False,
+        verbose=1,
+    )
+    def handle_sigstp(signum, frame):
+        inp = input("Caught SIGSTP. Continue? (y/n): ").lower()
+        if inp == 'y':
+            print("Continuing training...")
+            train(mdl, args, callback)
+        else:
+            print("Quitting...")
+            exit(0)
+    signal.signal(signal.SIGTSTP, handle_sigstp)
+    train(mdl, args, callback)
