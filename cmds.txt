@@ -44,9 +44,9 @@ python tune.py --algo trpo --n_envs 4 --n_trials 100 --learn_ts 1000000 --study_
 python tune.py --algo trpo --env ALE/Asteroids-v5 --cnn --n_envs 4 --n_trials 10
 0 --learn_ts 1000000 --study_name trpo_cnn_1234_fxr_2 --dir hyperparam_studies/trpo --seed 1234 --prune_after 50000
 
+python train.py --algo trpo --cnn --fc1 512 --fc2 512 --lr 0.0001 --gae 0.95 --gamma 0.99 --n_critic_updates 15 --batch_size 512 --n_steps 512 --kltarg 0.01 --cg_max 15 --cg_damp 0.1 --ls_max_iter 10 --timesteps 100000000 --n_envs 1 --logdir tblogs --save_to saved_models/trpo_cnn_1234 --tb_log_name trpo_cnn_1234 --seed 1234 > trpo_cnn_1234.log 2>&1
+
 seeds to train:
 1234
-5678
-1111
-2222
-3333
+4209510580
+706201447
