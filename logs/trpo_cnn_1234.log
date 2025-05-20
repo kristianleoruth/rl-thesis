@@ -1,0 +1,53 @@
+A.L.E: Arcade Learning Environment (version 0.10.2+c9d4b19)
+[Powered by Stella]
+A.L.E: Arcade Learning Environment (version 0.10.2+c9d4b19)
+[Powered by Stella]
+A.L.E: Arcade Learning Environment (version 0.10.2+c9d4b19)
+[Powered by Stella]
+A.L.E: Arcade Learning Environment (version 0.10.2+c9d4b19)
+[Powered by Stella]
+A.L.E: Arcade Learning Environment (version 0.10.2+c9d4b19)
+[Powered by Stella]
+A.L.E: Arcade Learning Environment (version 0.10.2+c9d4b19)
+[Powered by Stella]
+A.L.E: Arcade Learning Environment (version 0.10.2+c9d4b19)
+[Powered by Stella]
+A.L.E: Arcade Learning Environment (version 0.10.2+c9d4b19)
+[Powered by Stella]
+Using cuda device
+Wrapping the env in a VecTransposeImage.
+{'policy': 'CnnPolicy', 'device': 'cuda', 'env': <stable_baselines3.common.vec_env.vec_frame_stack.VecFrameStack object at 0x7f3cc952e690>, 'seed': 1234, 'learning_rate': 0.0001, 'policy_kwargs': {'net_arch': [512, 512], 'normalize_images': True}, 'n_steps': 1024, 'batch_size': 1024, 'gamma': 0.99, 'gae_lambda': 0.95, 'normalize_advantage': True, 'target_kl': 0.01, 'verbose': 1, 'cg_max_steps': 15, 'cg_damping': 0.1, 'line_search_max_iter': 10, 'n_critic_updates': 15, 'tensorboard_log': 'tblogs'}
+Seeds used:
+Model: 1234
+Env: 1234
+Logging to tblogs/trpo_cnn_1234_3
+/home/jovyan/rl-thesis/.conda/lib/python3.11/site-packages/stable_baselines3/common/callbacks.py:418: UserWarning: Training and eval env are not of the same type<stable_baselines3.common.vec_env.vec_transpose.VecTransposeImage object at 0x7f3cc0ea7c10> != <stable_baselines3.common.vec_env.vec_frame_stack.VecFrameStack object at 0x7f3cc0cbead0>
+  warnings.warn("Training and eval env are not of the same type" f"{self.training_env} != {self.eval_env}")
+---------------------------------
+| rollout/           |          |
+|    ep_len_mean     | 151      |
+|    ep_rew_mean     | 9.12     |
+| time/              |          |
+|    fps             | 857      |
+|    iterations      | 1        |
+|    time_elapsed    | 4        |
+|    total_timesteps | 4096     |
+---------------------------------
+-----------------------------------------
+| rollout/                  |           |
+|    ep_len_mean            | 142       |
+|    ep_rew_mean            | 8.81      |
+| time/                     |           |
+|    fps                    | 620       |
+|    iterations             | 2         |
+|    time_elapsed           | 13        |
+|    total_timesteps        | 8192      |
+| train/                    |           |
+|    explained_variance     | -0.000711 |
+|    is_line_search_success | 1         |
+|    kl_divergence_loss     | 0.00404   |
+|    learning_rate          | 0.0001    |
+|    n_updates              | 1         |
+|    policy_objective       | 0.00849   |
+|    value_loss             | 0.467     |
+-----------------------------------------
