@@ -418,3 +418,40 @@ From the figures, it seems clear that convolutional training is more susceptible
 The MLP agent has stable training, mostly monotonic with a few dips. All training runs are closely correlated, suggesting that seed choice is not an important factor. Possibly the hyperparameters chosen are more generalizable, or the RAM observations are more consistent/easy to understand. The MLP agent converges to a worse policy (in the range of 200-400 points lower than its convolutional counterpart). This could be due to 50M steps limiting the training, as the returns and scores curves suggest that the policy is not completely converged. The losses increase, which could be due to the greater magnitude of rewards seen as training progresses, which tracks with the rewards curve. Loss functions such as Mean Squared Error are sensitive to reward magnitudes. The agent achieves a 7.6% HNS, which is worse than the benchmark DQN agent (9.4%), and the convolutional agent (9.4%).
 
 Both agents see very little increase in episode length, suggesting poor asteroid avoidance. Thus the score increases are probably the agent optimizing within a low-reward policy space, because it seems evident that longer episodes with worse 'aggression' or score-gathering policies would have more opportunities to score and would therefore achieve better results. A 250 frame episode is equivalent to 4.17 seconds of gameplay, which is not good.
+
+[subheader][label=LSTM-PPO Training, uid=rppo_training]
+[section][notopmarg=True]
+[column][notopmarg=True]
+[img][
+    src=./assets/rppo/eval-score-cnn.jpg,
+    caption=Convolutional LSTM-PPO agent scores in evaluations performed during training,
+    maxwidth=100%
+]
+[img][
+    src=./assets/rppo/eval-eplen-cnn.jpg,
+    caption=Mean episode length of convolutional LSTM-PPO agent in evaluations,
+    maxwidth=100%
+]
+[img][
+    src=./assets/rppo/returns-cnn.jpg,
+    caption=Mean episode returns during training (agent receives these rewards which are clipped to the sign of the score for stability),
+    maxwidth=100%
+]
+[column][notopmarg=True]
+[code][
+[img][
+    src=./assets/rppo/eval-score-mlp.jpg,
+    caption=MLP LSTM-PPO agent scores in evaluations performed during training,
+    maxwidth=100%
+]
+[img][
+    src=./assets/rppo/eval-eplen-mlp.jpg,
+    caption=Mean episode length of LSTM-MLP PPO agent in evaluations,
+    maxwidth=100%
+]
+[img][
+    src=./assets/rppo/returns-mlp.jpg,
+    caption=Mean episode returns during training,
+    maxwidth=100%
+]
+]
