@@ -69,3 +69,21 @@ Logging to tblogs/trpo_cnn_1234_3
 |    policy_objective       | 0.00883  |
 |    value_loss             | 0.429    |
 ----------------------------------------
+----------------------------------------
+| rollout/                  |          |
+|    ep_len_mean            | 150      |
+|    ep_rew_mean            | 9.2      |
+| time/                     |          |
+|    fps                    | 532      |
+|    iterations             | 4        |
+|    time_elapsed           | 30       |
+|    total_timesteps        | 16384    |
+| train/                    |          |
+|    explained_variance     | 0.0591   |
+|    is_line_search_success | 1        |
+|    kl_divergence_loss     | 0.00467  |
+|    learning_rate          | 0.0001   |
+|    n_updates              | 3        |
+|    policy_objective       | 0.00683  |
+|    value_loss             | 0.352    |
+----------------------------------------
