@@ -5,3 +5,4 @@ __pycache__/
 conda-meta/
 test-ast.py
 .vscode/
+logs/
