@@ -53,7 +53,7 @@ class EvalAndSaveCallback(BaseCallback):
 def train(mdl, args, callback=None):
     try:
         # callback = EvalAndSaveCallback(name=args.tb_log_name or "unnamed", save_dir=os.path.dirname(args.save_to))
-        mdl.learn(args.timesteps - mdl.num_timesetps, tb_log_name=args.tb_log_name, callback=callback)
+        mdl.learn(args.timesteps - mdl.num_timesteps, tb_log_name=args.tb_log_name, callback=callback)
         mdl.save(args.save_to)
         print(f"Model saved {args.save_to}\n\n")
     except KeyboardInterrupt:
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             args.n_envs,
             args.seed,
             n_stack,
-            clip_reward=True
+            clip_reward=True,
         )
         eval_env, env_seed = model.get_mlp_env(
             args.env_id,

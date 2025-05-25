@@ -193,18 +193,21 @@ class SkipNFrames(gym.Wrapper):
 
 
 def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
-                     atari_frame_skip=4, clip_reward=True, noop_max=30):
+                     atari_frame_skip=4, clip_reward=True, noop_max=30, ram_obs=False):
     def _func():
         import gymnasium as gym  # re-import in subprocess
         if wrap_atari:
-            env = gym.make(env_id, render_mode="rgb_array")
+            env = gym.make(env_id, render_mode="rgb_array", obs_type="rgb")
             from stable_baselines3.common.atari_wrappers import AtariWrapper
             env = AtariWrapper(env, terminal_on_life_loss=False,
                                frame_skip=atari_frame_skip,
                                clip_reward=clip_reward,
                                noop_max=noop_max)
         else:
-            env = gym.make(env_id)
+            if ram_obs:
+                env = gym.make(env_id, obs_type="ram")
+            else:
+                env = gym.make(env_id)
             if clip_reward:
                 from gymnasium.wrappers import ClipReward
                 env = ClipReward(env, -1.0, 1.0)
@@ -220,7 +223,7 @@ def get_callable_env(env_id: str, seed: Optional[int], wrap_atari=False,
 
 def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
             wrap_atari=False, disable_vec_env=False, clip_reward=True, frame_skip=4,
-            noop_max=30):
+            noop_max=30, ram_obs=False):
     """
         Get AtariWrapper, VecEnv, (optional) VecFrameStack
             of env_id (if image obs)
@@ -238,18 +241,24 @@ def get_env(env_id: str, n_envs: int = 1, seed: int = None, n_stack: int = 1,
     if seed is None:
         seed = random.randint(0, 0xefffffff)
     if disable_vec_env:
-        env = get_callable_env(env_id, seed=seed,
-                               wrap_atari=wrap_atari, atari_frame_skip=frame_skip)()
+        env = get_callable_env(
+            env_id, 
+            seed=seed,
+            wrap_atari=wrap_atari,
+            atari_frame_skip=frame_skip,
+            ram_obs=ram_obs)()
         if n_stack > 1:
             env = gym.wrappers.FrameStackObservation(env, stack_size=n_stack)
         return env, seed
 
-    env_fns = [get_callable_env(env_id, seed=seed+i,
-                                wrap_atari=wrap_atari, clip_reward=clip_reward,
-                                atari_frame_skip=frame_skip, noop_max=noop_max)
-               for i in range(n_envs)]
+    env_fns = [get_callable_env(
+        env_id, seed=seed+i,
+        wrap_atari=wrap_atari, clip_reward=clip_reward,
+        atari_frame_skip=frame_skip, noop_max=noop_max,
+        ram_obs=ram_obs)
+        for i in range(n_envs)]
+    
     env = SubprocVecEnv(env_fns)
-    # env = VecNormalize(env, norm_obs=norm_obs, norm_reward=norm_reward)
     if n_stack > 1:
         env = VecFrameStack(env, n_stack=n_stack)
     return env, seed
@@ -267,7 +276,14 @@ def get_mlp_env(env_id, n_envs, seed=None, n_stack=4, clip_reward=True):
         Returns get_env
         No AtariWrapper, only clipped rwd
     """
-    return get_env(env_id, n_envs, seed, n_stack=n_stack, wrap_atari=False, clip_reward=clip_reward)
+    return get_env(
+        env_id, 
+        n_envs, 
+        seed, 
+        n_stack=n_stack, 
+        wrap_atari=False, 
+        clip_reward=clip_reward,
+        ram_obs=True)
 
 
 def get_video_env(env_id, seed=None, n_stack=4,
