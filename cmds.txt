@@ -46,6 +46,8 @@ python tune.py --algo trpo --env ALE/Asteroids-v5 --cnn --n_envs 4 --n_trials 10
 
 python train.py --algo trpo --cnn --fc1 512 --fc2 512 --lr 0.0001 --gae 0.95 --gamma 0.99 --n_critic_updates 15 --batch_size 512 --n_steps 512 --kltarg 0.01 --cg_max 15 --cg_damp 0.1 --ls_max_iter 10 --timesteps 100000000 --n_envs 1 --logdir tblogs --save_to saved_models/trpo_cnn_1234 --tb_log_name trpo_cnn_1234 --seed 1234 > logs/trpo_cnn_1234.log 2>&1
 
+python train.py --algo trpo --cnn --fc1 512 --fc2 512 --lr 0.0001 --gae 0.95 --gamma 0.99 --n_critic_updates 15 --batch_size 512 --n_steps 512 --kltarg 0.01 --cg_max 15 --cg_damp 0.1 --ls_max_iter 10 --n_envs 4 --env_id ALE/Asteroids-v5 --timesteps 50000000 --save_to saved_models/trpo_cnn_1234 --logdir tblogs --tb_log_name trpo_cnn_1234 --seed 1234 --lrcos > logs/trpo_cnn_1234.log
+
 seeds to train:
 1234
 4209510580
