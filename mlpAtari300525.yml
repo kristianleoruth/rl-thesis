@@ -1,4 +1,4 @@
-name: merged_env
+name: mlpAtari300525
 channels:
   - defaults
   - conda-forge
@@ -16,7 +16,6 @@ dependencies:
   - tk=8.6.14
   - xz=5.6.4
   - zlib=1.2.13
-  - tzdata=2025.2
   - ca-certificates=2025.2.25
   - pip:
       - absl-py==2.2.2
@@ -113,6 +112,7 @@ dependencies:
       - tqdm==4.67.1
       - treescope==0.1.9
       - typing_extensions==4.13.2
+      - tzdata==2025.2
       - urllib3==2.4.0
       - Werkzeug==3.1.3
       - zipp==3.21.0

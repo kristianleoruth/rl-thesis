@@ -4,6 +4,25 @@ This project was part of my degree project for the program Information and Commu
 
 \tableofcontents
 
+[header][label=Steps for reproducibility, uid=reproducibility]
+The convolutional policies were trained on KTH Royal Institute of Sweden's \link{https://gpu1.eecs.kth.se/static/}{JupyterHub@KTH} system, using a 20GB NVIDIA MiG slice of the 8 80GB H100s. To install the environment with the correct dependencies, make sure to have the \textcode{convAtari300525.yml} file downloaded and \textcode{conda} is installed. Run the following commands:
+
+[code][
+$ cd /Path/to/project/dir
+$ conda env create -f /Path/to/convAtari300525.yml
+$ conda activate convAtari300525
+$ pip install torch==2.6.0+cu124 torchaudio==2.6.0+cu124 torchvision==0.21.0+cu124 \
+    --extra-index-url https://download.pytorch.org/whl/cu124
+]
+
+For MLP policies, the training was done on an M2 MacBook Air. To recreate, download the \textcode{mlpAtari300525.yml} file from the \link{https://www.github.com/kristianleoruth/rl-thesis}{Github}.
+
+[code][
+$ cd /Path/to/project/dir
+$ conda env create -f /Path/to/mlpAtari300525.yml
+$ conda activate mlpAtari300525
+]
+
 [header][label=Background, uid=background]
 [subheader][label=Atari Asteroids, uid=env_expl]
 Asteroids (1979) is a game featuring the player controlling a ship in a field of asteroids. The asteroids are slow moving projectiles which, upon coming into contact with the player, cause the loss of a life. The player can accelerate forward, turn clockwise and anti-clockwise, as well as shoot a fast moving projectile which can destroy asteroids. Asteroids, upon being shot by a projectile, split into smaller pieces which can be further split or destroyed if small enough. These actions gain scores of 20, 50, and 100 in order of decreasing size.
