@@ -1,1 +1,0 @@
-python train.py --algo trpo --fc1 512 --fc2 512 --lr 0.001 --gae 0.95 --gamma 0.99 --n_critic_updates 10 --batch_size 8192 --n_steps 2048 --kltarg 0.03 --cg_max 15 --cg_damp 0.05 --ls_max_iter 10 --n_envs 4 --env ALE/Asteroids-v5 --logdir tblogs --save_to saved_models/trpo_mlp_1234 --tb_log_name trpo_mlp_1234 --seed 1234 --timesteps 50000000 > logs/trpo_mlp_1234.log
